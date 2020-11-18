@@ -154,7 +154,7 @@
                         </div>
                         <div class="form-group">
                           <label for="">Class Max Members</label>
-                          <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Enter Class Price" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" name="class_max_member">
+                          <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Enter Class Max Number" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" name="class_max_member">
                         </div>
                         <div class="form-group">
                             <label for="">Class Schedule</label>
@@ -216,41 +216,61 @@
                         </div>
                       </div>
                     </div>
+                    <div id="modRow" class="d-flex justify-content-center row my-2">
+                      <div class="col">
+                         
+                          <div class="card text-dark bg-light mb-3">
+                            <div class="card-header"><b>Add a New Class Member</b></div>
+                            <div class="card-body">
+                            <form action="{{ route('add-new-class-member') }}" method="POST">
+                              @csrf
+                                <div class="form-group">
+                                  <label for="">Enter Customer ID</label>
+                                  <input type="text" class="form-control" id="exampleInputEmail1" placeholder="Enter Customer ID" name="customer_id">
+                                </div>
+                                <input type="hidden" name="class_id" value="{{ $class->class_id }}">
+                                <button type="submit" class="btn btn-primary full-btn">Add Member</button>
+                            </form>
+                            </div>
+                          </div>
+                      </div>
+                    </div>
+                    <div class="card-header"><b>Class Members</b></div>
                   <div class="form-group">
                     <input type="text" class="form-control" placeholder="Search Members by ID" onkeyup="filterProduct(this, '.member-name')"/>
                   </div>
-                  <div class="table-responsive overflow-y">
-                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                      <thead>
-                          <tr>
-                              <th>Members ID</th>
-                              <th>Members Name</th>
-                              <th>Members Email</th>
-                              <th class="text-center">Option</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                        @foreach ($customerclass as $detail)
-                          @if ($detail->class_id == $class->class_id)
-                            <tr class="member-name">
-                              <td>{{ $detail->customer_id }}</td>
-                              <td>{{ $detail->customer_name }}</td>
-                              <td>{{ $detail->customer_email }}</td>
-                              <form action="{{ route('remove-class-member') }}" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <input type="hidden" name="customer_id" value="{{ $detail->customer_id }}" />
-                                <input type="hidden" name="customerclass_id" value="{{ $detail->id }}" />
-                                <input type="hidden" name="class_id" value="{{ $detail->class_id }}" />
-                                <input type="hidden" name="class_cur_number" value="{{ $class->class_cur_number }}" />
-                                <td class="text-center"><button class="btn" style="border: 0px; background"><i class="fas fa-trash fa-2x text-danger icon-animation" title="remove member"></i></button></td>
-                              </form>
+                    <div class="table-responsive overflow-y">
+                      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Members ID</th>
+                                <th>Members Name</th>
+                                <th>Members Email</th>
+                                <th class="text-center">Option</th>
                             </tr>
-                          @endif
-                        @endforeach
-                      </tbody>
-                  </table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          @foreach ($customerclass as $detail)
+                            @if ($detail->class_id == $class->class_id)
+                              <tr class="member-name">
+                                <td>{{ $detail->customer_id }}</td>
+                                <td>{{ $detail->customer_name }}</td>
+                                <td>{{ $detail->customer_email }}</td>
+                                <form action="{{ route('remove-class-member') }}" method="POST">
+                                  @csrf
+                                  @method('DELETE')
+                                  <input type="hidden" name="customer_id" value="{{ $detail->customer_id }}" />
+                                  <input type="hidden" name="customerclass_id" value="{{ $detail->id }}" />
+                                  <input type="hidden" name="class_id" value="{{ $detail->class_id }}" />
+                                  <input type="hidden" name="class_cur_number" value="{{ $class->class_cur_number }}" />
+                                  <td class="text-center"><button class="btn" style="border: 0px; background"><i class="fas fa-trash fa-2x text-danger icon-animation" title="remove member"></i></button></td>
+                                </form>
+                              </tr>
+                            @endif
+                          @endforeach
+                        </tbody>
+                      </table>
+                    </div>
                 </div>
               </div>
             </div>

@@ -42,6 +42,7 @@ Route::get('/register', [AdminController::class, 'register'])->name('admin.regis
 Route::delete('/remove-employee', [AdminController::class, 'removeEmployee'])->name('remove-employee');
 Route::delete('/remove-class-member', [AdminController::class, 'removeClassMember'])->name('remove-class-member');
 Route::delete('/remove-class-entirely', [AdminController::class, 'removeClassEntirely'])->name('remove-class-entirely');
+Route::delete('/remove-product', [AdminController::class, 'removeProduct'])->name('remove-product');
 
 /* POST ROUTES */
 Route::post('/add-employee', [AdminController::class, 'addEmployee'])->name('add-employee');
@@ -49,4 +50,7 @@ Route::post('/add-customer', [AdminController::class, 'addCustomer'])->name('add
 Route::post('/add-new-log', [AdminController::class, 'addNewLog'])->name('add-new-log');
 Route::post('/add-new-class', [AdminController::class, 'addNewClass'])->name('add-new-class');
 Route::post('/update-class', [AdminController::class, 'updateClass'])->name('update-class');
+Route::post('/add-new-class-member', [AdminController::class, 'addNewClassMember'])->name('add-new-class-member');
+Route::post('/add-new-product', [AdminController::class, 'addNewProduct'])->name('add-new-product');
+Route::post('/update-product', [AdminController::class, 'updateProduct'])->name('update-product');
 
