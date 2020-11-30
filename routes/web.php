@@ -40,6 +40,8 @@ Route::get('/register', [AdminController::class, 'register'])->name('admin.regis
 
 Route::get('/new-transaction-page', [AdminController::class, 'showNewTransactionPage'])->name('add-new-transaction-page');
 
+Route::get('/pdf-view-thequickbrownfoxjumpsoverthelazydogs', [AdminController::class, 'pdfView'])->name('pdf-view');
+
 /* DELETE ROUTES */
 Route::delete('/remove-employee', [AdminController::class, 'removeEmployee'])->name('remove-employee');
 Route::delete('/remove-class-member', [AdminController::class, 'removeClassMember'])->name('remove-class-member');
@@ -60,4 +62,5 @@ Route::post('/update-product', [AdminController::class, 'updateProduct'])->name(
 Route::post('/add-new-transaction', [AdminController::class, 'addNewTransaction'])->name('add-new-transaction');
 Route::post('/add-new-order', [AdminController::class, 'addNewOrder'])->name('add-new-order');
 Route::post('/finish-transaction', [AdminController::class, 'finishTransaction'])->name('finish-transaction');
+Route::post('/generate-report', [AdminController::class, 'generateReport'])->name('generate-report');
 

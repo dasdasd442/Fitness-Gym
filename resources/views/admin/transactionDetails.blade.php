@@ -55,8 +55,8 @@
                                   <td   style="cursor: pointer;" data-toggle="modal" data-target="#transaction{{ $transaction->transaction_id}}" title="Click to see more details">{{ $order->customer_id }}</td>
                                   <td   style="cursor: pointer;" data-toggle="modal" data-target="#transaction{{ $transaction->transaction_id}}" title="Click to see more details">{{ $transaction->employee_id }}</td>
                                   <td   style="cursor: pointer;" data-toggle="modal" data-target="#transaction{{ $transaction->transaction_id}}" title="Click to see more details">{{ $transaction->transaction_date }}</td>
-                                  <td   style="cursor: pointer;" data-toggle="modal" data-target="#transaction{{ $transaction->transaction_id}}" title="Click to see more details">{{ $transaction->total_payment }}</td>
-                                  <td   style="cursor: pointer;" data-toggle="modal" data-target="#transaction{{ $transaction->transaction_id}}" title="Click to see more details">{{ $transaction->amount_paid }}</td>
+                                  <td   style="cursor: pointer;" data-toggle="modal" data-target="#transaction{{ $transaction->transaction_id}}" title="Click to see more details">Php {{ number_format($transaction->total_payment, 2, '.', ',') }}</td>
+                                  <td   style="cursor: pointer;" data-toggle="modal" data-target="#transaction{{ $transaction->transaction_id}}" title="Click to see more details">Php {{ number_format($transaction->amount_paid, 2, '.', ',') }}</td>
                                   @if ($transaction->status == 'completed')
                                     <td   style="cursor: pointer;" data-toggle="modal" data-target="#transaction{{ $transaction->transaction_id}}" title="Click to see more details"><span class="text-success">{{ $transaction->status }}</span></td>
                                   @else
@@ -116,13 +116,13 @@
                                               <td>{{ $order->customer_name }}</td>
                                               @if ($order->product_id)
                                                 <td>{{ $order->product_name }}</td>
-                                                <td>{{ $order->product_price }}</td>
+                                                <td>Php {{ number_format($order->product_price, 2, '.', ',') }}</td>
                                               @elseif ($order->service_id)
                                                 <td>{{ $order->service_name }}</td>
-                                                <td>{{ $order->service_price }}</td>
+                                                <td>Php {{ number_format($order->service_price, 2, '.', ',') }}</td>
                                               @endif
                                               <td>{{ $order->total_qty }}</td>
-                                              <td>{{ $order->order_amount }}</td>
+                                              <td>Php {{ number_format($order->order_amount, 2, '.', ',') }}</td>
                                             </tr>
                                           @endif
                                             

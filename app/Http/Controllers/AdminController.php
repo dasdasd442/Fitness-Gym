@@ -18,12 +18,102 @@ use DateTime;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade as PDF;
+// use Barryvdh\DomPDF\PDF;
 
 class AdminController extends Controller
 {
     /* GET REQUEST */
     public function index() {
-        return view('admin.index');
+
+        $transactions = DB::table('transactiondetail')->select(DB::raw('*'))->get()->toArray();
+
+        $totalMembers = DB::table('customer')->select('*')->get()->toArray();
+
+        $yearlyEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                                            ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+                                            AND DATE (`transaction_date`) <= CURDATE()')
+                                            ->get()->toArray();
+        
+        $monthlyEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                                            ->whereRaw('DATE(`transaction_date`) BETWEEN 
+                                            DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND CURDATE()')
+                                            ->get()->toArray();
+
+
+        // return $monthlyEarnings;
+        $dailyEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                                            ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+                                            AND DATE(`transaction_date`) <= CURDATE()')
+                                            ->get()->toArray();
+
+        $lifetimeEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))->get()->toArray();
+
+
+        $jan = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                ->whereRaw('MONTH(transaction_date) = 1 AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+                    
+        $feb = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                ->whereRaw('MONTH(transaction_date) = 2 AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+        $mar = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                 ->whereRaw('MONTH(transaction_date) = 3  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+        $apr = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                ->whereRaw('MONTH(transaction_date) = 4  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+        $may = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                ->whereRaw('MONTH(transaction_date) = 5  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+        $jun = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                ->whereRaw('MONTH(transaction_date) = 6  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+        $jul = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                ->whereRaw('MONTH(transaction_date) = 7  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+        $aug = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                ->whereRaw('MONTH(transaction_date) = 8  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+        $sep = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                ->whereRaw('MONTH(transaction_date) = 9  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+        $oct = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                ->whereRaw('MONTH(transaction_date) = 10  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+        $nov = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                ->whereRaw('MONTH(transaction_date) = 11  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+        $dec = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                ->whereRaw('MONTH(transaction_date) = 12  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
+
+        $perMonth = array($jan[0]->earnings, $feb[0]->earnings, $mar[0]->earnings, $apr[0]->earnings, $may[0]->earnings, $jun[0]->earnings, $jul[0]->earnings, $aug[0]->earnings, $sep[0]->earnings, $oct[0]->earnings, $nov[0]->earnings, $dec[0]->earnings);
+
+        $allMonthEarnings = [];
+        for ($i = 0; $i <12; $i++) {
+            $allMonthEarnings[$i] = ($perMonth[$i]) ? $perMonth[$i] : 0;
+        }
+
+        $monthNamesWithEarnings = array('January' => $allMonthEarnings[0], 'February' => $allMonthEarnings[1], 'March' => $allMonthEarnings[2], 'April' => $allMonthEarnings[3], 'May' => $allMonthEarnings[4], 'June' => $allMonthEarnings[5], 'July' => $allMonthEarnings[6], 'August' => $allMonthEarnings[7], 'September' => $allMonthEarnings[8], 'October' => $allMonthEarnings[9], 'November' => 
+        $allMonthEarnings[10], 'December' => $allMonthEarnings[11]);
+
+
+        $transactionsToday = DB::table('transactiondetail')->select(DB::raw('COUNT(*) AS num_of_transaction'))
+                                ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+                                AND DATE(`transaction_date`) <= CURDATE()')->get()->toArray();
+
+        $walkinTransactions = DB::table('transactiondetail')
+                                ->select(DB::raw('*'))
+                                ->join('orders', 'orders.transaction_id', 'transactiondetail.transaction_id')
+                                ->whereRaw('orders.customer_id IS NULL')->get()->toArray();
+
+        $memberTransactions = DB::table('transactiondetail')
+                                ->select(DB::raw('*'))
+                                ->join('orders', 'orders.transaction_id', 'transactiondetail.transaction_id')
+                                ->whereRaw('orders.customer_id IS NOT NULL')->get()->toArray();
+    
+        
+        return view('admin.index', ['totalMembers' => $totalMembers, 
+                    'transactions' => $transactions,
+                    'todaysTransactions' => $transactionsToday,
+                    'yearlyEarnings' => $yearlyEarnings,
+                    'monthlyEarnings' => $monthlyEarnings,
+                    'dailyEarnings' => $dailyEarnings,
+                    'lifetimeEarnings' => $lifetimeEarnings,
+                    'allMonthEarnings' => $allMonthEarnings,
+                    'monthNamesWithEarnings' => $monthNamesWithEarnings,
+                    'walkinTransactions' => $walkinTransactions,
+                    'memberTransactions' => $memberTransactions
+        ]);
     }
 
     public function login() {
@@ -153,6 +243,19 @@ class AdminController extends Controller
                         'latest_transaction_id' => $latest_transaction_id,
                         'transaction' => $latest_transaction[0]
         ]);
+    }
+
+    public function pdfView() {
+
+        $transactions = DB::table('transactiondetail')->select('*')
+        ->join('orders', 'orders.transaction_id', 'transactiondetail.transaction_id')
+        ->leftJoin('product', 'product.product_id', 'orders.product_id')
+        ->leftJoin('services', 'services.service_id', 'orders.service_id')
+        ->join('employee', 'employee.employee_id', 'transactiondetail.employee_id')
+        ->whereRaw('orders.product_id IS NOT NULL OR orders.service_id IS NOT NULL')
+        ->get()->toArray();
+
+        return view('admin.pdfView', ['transactions' => $transactions]);
     }
 
     /* POST REQUEST */
@@ -626,6 +729,21 @@ class AdminController extends Controller
                 ->update(['amount_paid' => $amount_paid, 'amount_change' => $amount_change, 'status' => 'completed']);
         
         return redirect('/transaction-details');
+    }
+
+    public function generateReport() {
+        
+
+        $transactions = DB::table('transactiondetail')->select('*')
+        ->join('orders', 'orders.transaction_id', 'transactiondetail.transaction_id')
+        ->leftJoin('product', 'product.product_id', 'orders.product_id')
+        ->leftJoin('services', 'services.service_id', 'orders.service_id')
+        ->join('employee', 'employee.employee_id', 'transactiondetail.employee_id')
+        ->whereRaw('orders.product_id IS NOT NULL OR orders.service_id IS NOT NULL')
+        ->get()->toArray();
+
+        $pdf = PDF::loadView('admin.pdfView', ['transactions' => $transactions]);
+        return $pdf->download('sample.pdf');
     }
 
     /* UPDATE REQUEST */
