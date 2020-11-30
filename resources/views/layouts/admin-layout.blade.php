@@ -168,9 +168,9 @@
 
     <!-- New Transaction  -->
     <li class="nav-item">
-      <a class="nav-link" href="/new-transaction">
-        <i class="fas fa-fw fa-plus-circle"></i>
-        <span>New Transaction</span></a>
+      <a class="nav-link" href="/transaction-details">
+        <i class="fas fa-file-invoice"></i></i>
+        <span>Transactions</span></a>
     </li>
 
 

@@ -10,4 +10,9 @@ class TransactionDetail extends Model
     use HasFactory;
     protected $table = "transactiondetail";
     protected $primaryKey = 'transaction_id';
+    protected $fillable = [
+            'employee_id',
+            'transaction_date',
+            'status'
+    ];
 }

@@ -28,11 +28,16 @@ tr:hover {
   height: 500px;
 }
 
-.overflow-y::-webkit-scrollbar {
+.overflow-y-2 {
+  overflow-y: scroll;
+  height: 350px;
+}
+
+.overflow-y::-webkit-scrollbar, .overflow-y-2::-webkit-scrollbar {
   width: 4px;
 }
 
-.overflow-y::-webkit-scrollbar-track {
+.overflow-y::-webkit-scrollbar-track, .overflow-y-2::-webkit-scrollbar-track {
   background: #19b0b8;
   border-radius: 4px;
 }
@@ -41,8 +46,13 @@ tr:hover {
   margin-right: 20px;
 }
 
+.disable_focus:focus {
+  outline: none;
+}
 
-
+#totalPayment, #staticAmountPaid, #change {
+  color: white;
+}
 
 
 

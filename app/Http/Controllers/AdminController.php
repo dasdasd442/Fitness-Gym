@@ -34,8 +34,22 @@ class AdminController extends Controller
         return view('admin.register');
     }
 
-    public function newTransaction() {
-        return view('admin.newtransaction');
+    public function transactionDetails() {
+        $transactions = DB::table('transactiondetail')
+                                ->select(DB::raw('*'))
+                                ->join('employee', 'employee.employee_id', 'transactiondetail.employee_id')
+                                ->get()
+                                ->toArray();
+
+        $orders = DB::table('orders')
+                            ->select(DB::raw('*'))
+                            ->leftJoin('customer', 'customer.customer_id', 'orders.customer_id')
+                            ->leftJoin('product', 'product.product_id', 'orders.product_id')
+                            ->leftJoin('services', 'services.service_id', 'orders.service_id')
+                            ->get()
+                            ->toArray();
+    
+        return view('admin.transactionDetails', ['transactions' => $transactions, 'orders' => $orders]);
     }
 
     public function classesDetails() {
@@ -112,6 +126,33 @@ class AdminController extends Controller
 
     public function settings() {
         return view('admin.settings');
+    }
+
+    public function showNewTransactionPage() {
+
+        $latest_transaction = DB::table('transactiondetail')
+                                        ->select(DB::raw('*'))
+                                        ->leftJoin('employee', 'employee.employee_id', 'transactiondetail.employee_id')
+                                        ->orderByDesc('transaction_id')
+                                        ->limit(1)
+                                        ->get()
+                                        ->toArray();
+        $latest_transaction_id = $latest_transaction[0]->transaction_id;
+
+        $current_orders = DB::table('orders')
+                            ->select(DB::raw('*'))
+                            ->leftJoin('product', 'product.product_id', 'orders.product_id')
+                            ->leftJoin('services', 'services.service_id', 'orders.service_id')
+                            ->leftJoin('customer', 'customer.customer_id', 'orders.customer_id')
+                            ->where('transaction_id', '=', $latest_transaction_id)
+                            ->get()
+                            ->toArray();
+        
+        return view('admin.addTransaction', [
+                        'orders' => $current_orders, 
+                        'latest_transaction_id' => $latest_transaction_id,
+                        'transaction' => $latest_transaction[0]
+        ]);
     }
 
     /* POST REQUEST */
@@ -336,6 +377,256 @@ class AdminController extends Controller
         return redirect('/shop-details')->with('msg', $msg);
     }
 
+    // ANG EMPLOYEE_ID DIRI KAY ILISANAN
+    public function addNewTransaction() {
+
+        $latest_transaction = DB::table('transactiondetail')
+                                ->select(DB::raw('*'))
+                                ->orderByDesc('transaction_id')
+                                ->limit(1)
+                                ->get()
+                                ->toArray();
+        $status = $latest_transaction[0]->status;
+        $id = $latest_transaction[0]->transaction_id;
+
+        // if new transaction, create one, otherwise use the last instance of transaction
+        // ANG EMPLOYEE ILISANAN
+        if ($status == 'completed') {
+            $transactiondetail = new TransactionDetail([
+                    'employee_id' => 1,
+                    'transaction_date' => Carbon::now(),
+                    'status' => 'pending'
+            ]);
+    
+            $transactiondetail->save();
+            $last_insert_id = $transactiondetail->transaction_id;
+            // DO THIS LOGIC HERE
+            // ADD AN INSTANCE TO TRANSACTIONDETAILS
+            return redirect('/new-transaction-page',)->with('latest_transaction_id', $last_insert_id);
+
+        } else {
+            return redirect('/new-transaction-page',)->with('latest_transaction_id', $id);
+        }
+    }
+
+    public function addNewOrder() {
+
+        if (empty(request('service_id')) && empty(request('product_id'))) {
+            return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');  
+        }
+
+        if (!empty(request('service_id')) && !empty(request('product_id'))) {
+            return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');  
+            return "di sila empty duha";
+        }
+
+        // return request('service_id');
+        $transactiondetail = DB::table('transactiondetail')
+                        ->select(DB::raw('*'))
+                        ->where('transaction_id', '=', request('current_transaction_id'))
+                        ->get()
+                        ->toArray();
+
+        $service = false;
+        $product = false;
+        // naay gi input nga product id
+        if (!empty(request('product_id'))) {
+
+            $productExists = DB::table('product')
+            ->select(DB::raw('*'))
+            ->where('product_id', '=', request('product_id'))
+            ->get()
+            ->toArray();
+        
+            if (count($productExists) <= 0) {
+                return "product doesnt exists";
+                return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');  
+            }
+
+            if ($productExists[0]->product_stock == 0) {
+                // out of stock, nasayop lang ug tuplok ang employee
+                return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');  
+                return "product was out of stock";
+            } else {
+                // available
+
+                // service nga membership ang gi avail
+                if ($productExists[0]->product_stock == -1) {
+                    $stocks_left = -1;
+                } else { //ang gi avail kay product jud
+
+                    // if less than 0, lapas ang na input so error
+                    $stocks_left = $productExists[0]->product_stock - request('total_qty');
+                    if ($stocks_left < 0) {
+                        return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');  
+                        return "stock went a negative value";
+                    }
+                }
+                $service = false;
+                $product = true;
+            }
+        }
+
+        // naay gi avail nga service (classes)
+        if (!empty(request('service_id'))) {
+
+            $serviceExists = DB::table('services')
+                                ->select(DB::raw('*'))
+                                ->where('service_id', '=', request('service_id'))
+                                ->get()->toArray();
+            
+            if (count($serviceExists) <= 0) {
+                return "service doesnt exist";
+                return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');  
+            }
+
+            if ($serviceExists[0]->service_status != 'available') {
+                return "service not available";
+                return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');  
+            } else {
+              // ang employee na dapat mo add sa customer ngadto sa california class tab  
+              $service = true;
+              $product = false;
+            }
+        }
+
+        $walkin = '';
+        $customerExists = false;
+        if (empty(request('customer_id'))) {
+            $walkin = 'Walk in';
+        } else {
+            // naay gi input nga customer id
+            $customer = DB::table('customer')->select(DB::raw('*'))
+                            ->where('customer_id', '=', request('customer_id'))->get()->toArray();
+            
+            // wa ni exist
+            if (count($customer) <= 0) {
+                return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');  
+            } else {
+                $customerExists = true;
+            }
+        }
+
+        $current_order_id = 0;
+        if ($customerExists) {
+            
+            if ($product) {
+                $order = new Orders([
+                    'customer_id' => request('customer_id'),
+                    'product_id' => request('product_id'),
+                    'transaction_id' => request('current_transaction_id'),
+                    'total_qty' => request('total_qty')
+                ]);
+                $order->save();
+            } else if ($service) {
+                $order = new Orders([
+                    'customer_id' => request('customer_id'),
+                    'service_id' => request('service_id'),
+                    'transaction_id' => request('current_transaction_id'),
+                    'total_qty' => request('total_qty')
+                ]);
+                $order->save();
+            }
+            $current_order_id = $order->order_id;
+        } else if ($walkin == 'Walk in') {
+           
+            if ($product) {
+                $order = new Orders([
+                    'product_id' => request('product_id'),
+                    'transaction_id' => request('current_transaction_id'),
+                    'total_qty' => request('total_qty'),
+                ]);
+                $order->save();
+            } else if ($service) {
+                $order = new Orders([
+                    'service_id' => request('service_id'),
+                    'transaction_id' => request('current_transaction_id'),
+                    'total_qty' => request('total_qty'),
+                ]);
+                $order->save();
+            }
+            $current_order_id = $order->order_id;
+        }
+
+    
+        $updatedOrders = DB::table('orders')->select(DB::raw('*'))
+                            ->where('order_id', '=', $current_order_id)->get()->toArray();
+
+        if ($product) {
+            $order_amount = $productExists[0]->product_price * $updatedOrders[0]->total_qty;
+        } else if ($service) {
+            $order_amount = $serviceExists[0]->service_price * $updatedOrders[0]->total_qty;
+        }
+
+
+
+
+        DB::table('orders')
+            ->where('order_id', '=',  $current_order_id)
+            ->update(['order_amount' => $order_amount]);
+
+        $new_order_count = $transactiondetail[0]->order_count + 1;
+        $current_total_payment = $transactiondetail[0]->total_payment;
+        $current_total_payment += $order_amount;
+        DB::table('transactiondetail')
+                        ->where('transaction_id', '=', request('current_transaction_id'))
+                        ->update(['order_count' => $new_order_count, 'total_payment' => $current_total_payment]);
+            
+
+        return redirect('/new-transaction-page')->with('msg', 'Added Successfully!');
+        
+    }
+
+    public function finishTransaction() {
+
+        if (request('total_payment') <= 0) {
+            return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');  
+        }
+
+        if (empty(request('amount_paid'))) {
+            return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');  
+            return "wa ni bayad";
+        }
+        if (request('amount_change') < 0) {
+            return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');  
+            return "kuwang ang bayad";
+        }
+
+        $amount_paid = request('amount_paid');
+        $amount_change = request('amount_change');
+
+
+        $transaction_products_from_orders = DB::table('orders')->select(DB::raw('*'))
+                                                ->where('transaction_id', '=', request('transaction_id'))
+                                                ->get()->toArray();
+    
+        foreach($transaction_products_from_orders as $products) {
+            if ($products->product_id) {
+                $productTB = DB::table('product')->select(DB::raw('*'))->
+                                where('product_id', '=', $products->product_id)->get()->toArray();
+                
+                if ($productTB[0]->product_stock == -1) {
+                    continue;
+                } else {
+                    $new_prod_stock = $productTB[0]->product_stock - $products->total_qty;
+
+                    if ($new_prod_stock == 0) {
+                        DB::table('product')->select(DB::raw('*'))->where('product_id', '=', $products->product_id)
+                                            ->update(['product_stock' => $new_prod_stock, 'product_status' => 'unavailable']);
+                    } else {
+                        DB::table('product')->select(DB::raw('*'))->where('product_id', '=', $products->product_id)
+                                        ->update(['product_stock' => $new_prod_stock]);
+                    }
+                }
+            }
+        }
+
+
+        DB::table('transactiondetail')->where('transaction_id', '=', request('transaction_id'))
+                ->update(['amount_paid' => $amount_paid, 'amount_change' => $amount_change, 'status' => 'completed']);
+        
+        return redirect('/transaction-details');
+    }
 
     /* UPDATE REQUEST */
     public function updateClass() {
@@ -550,6 +841,59 @@ class AdminController extends Controller
 
         
         return redirect('/shop-details')->with('msg', 'Removed Successfully!');
+    }
+
+    public function removeOrder() {
+
+        $currentOrder = DB::table('orders')->select(DB::raw('*'))
+                            ->where('order_id', '=', request('order_id'))
+                            ->get()->toArray();
+
+        $order_amount = $currentOrder[0]->order_amount;
+
+
+        $transactiondetail = DB::table('transactiondetail')
+                                ->select(DB::raw('*'))                        
+                                ->where('transaction_id', '=', request('current_transaction_id'))
+                                ->get()
+                                ->toArray();
+        
+        $current_order_count = $transactiondetail[0]->order_count - 1;
+        
+        $current_total_payment = $transactiondetail[0]->total_payment - $order_amount;
+
+
+        if (DB::table('orders')->where('order_id', '=', request('order_id'))->delete()) {
+
+            DB::table('transactiondetail')->where('transaction_id', '=', request('current_transaction_id'))
+                                            ->update(['order_count' => $current_order_count, 
+                                                        'total_payment' => $current_total_payment]);
+            
+            return redirect('/new-transaction-page')->with('msg', 'Removed Successfully!');
+
+        } else {
+            return redirect('/new-transaction-page')->with('msg', 'Cannot Perform Action!');
+        }
+
+
+        return request('order_id');
+        return request('current_transaction_id');
+        return "removing an order...";
+    }
+
+    public function removeTransaction() {
+
+        $transaction_orders = DB::table('orders')->select(DB::raw('*'))
+                                ->where('transaction_id', '=', request('transaction_id'))->get()->toArray();
+
+        
+        for ($i = 0; $i < count($transaction_orders); $i++) {
+            DB::table('orders')->where('transaction_id', '=', request('transaction_id'))->delete();        
+        }
+
+        DB::table('transactiondetail')->where('transaction_id', '=', request('transaction_id'))->delete();
+
+        return redirect('/transaction-details');
     }
 }
 

@@ -18,6 +18,7 @@ class CreateTransactiondetailTable extends Migration
             $table->bigIncrements('transaction_id');
             $table->bigInteger('employee_id');
             $table->timestamp('transaction_date')->useCurrent();
+            $table->integer('order_count')->default(0);
             $table->float('total_payment')->default(0);
             $table->float('amount_paid')->default(0);
             $table->float('amount_change')->default(0);
