@@ -4,6 +4,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\MainController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,7 +19,7 @@ use App\Http\Controllers\AdminController;
 
 /* ADMIN ROUTES */
 /* GET ROUTES */
-Route::get('/', [AdminController::class, 'index'])->name('admin.index');
+Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.index');
 
 Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
 
@@ -34,7 +35,7 @@ Route::get('/transaction-details', [AdminController::class, 'transactionDetails'
 
 Route::get('/shop-details', [AdminController::class, 'shopDetails'])->name('admin.shop');
 
-Route::get('/login', [AdminController::class, 'login'])->name('admin.login');
+Route::get('/admin/login', [AdminController::class, 'login'])->name('admin.login');
 
 Route::get('/register', [AdminController::class, 'register'])->name('admin.register');
 
@@ -63,4 +64,23 @@ Route::post('/add-new-transaction', [AdminController::class, 'addNewTransaction'
 Route::post('/add-new-order', [AdminController::class, 'addNewOrder'])->name('add-new-order');
 Route::post('/finish-transaction', [AdminController::class, 'finishTransaction'])->name('finish-transaction');
 Route::post('/generate-report', [AdminController::class, 'generateReport'])->name('generate-report');
+
+
+
+
+
+
+
+
+
+
+
+/***  MAINPAGE ROUTES ***/
+Route::get('/', [MainController::class, 'index'])->name('mainpage-index');
+Route::get('/location-and-pricing', [MainController::class, 'locationPricing'])->name('mainpage-location');
+Route::get('/available-classes', [MainController::class, 'mainpageClasses'])->name('mainpage-classes');
+Route::get('/shop', [MainController::class, 'mainpageShop'])->name('mainpage-shop');
+Route::get('/about-california', [MainController::class, 'mainpageAbout'])->name('mainpage-about');
+
+Route::get('/sign-up', [MainController::class, 'mainpageSignup'])->name('mainpage-sign-up');
 

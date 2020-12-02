@@ -53,7 +53,7 @@
                   </form>
                   <hr>
                   <div class="text-center">
-                    <a href="#">Go back to Website.</a>
+                    <a href="{{ route('mainpage-index') }}">Go back to Website.</a>
                   </div>
 
                 </div>

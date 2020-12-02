@@ -118,7 +118,7 @@
   <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <!-- Sidebar - Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('admin.index') }}">
       <div class="sidebar-brand-icon">
         <img id="showImg" src="images/logo.png" class="img-thumbnail d-lg-none sm"/>
       </div>
@@ -130,7 +130,7 @@
 
     <!-- Nav Item - Dashboard -->
     <li class="nav-item active">
-      <a class="nav-link" href="/">
+      <a class="nav-link" href="{{ route('admin.index') }}">
         <i class="fas fa-fw fa-tachometer-alt"></i>
         <span>Dashboard</span></a>
     </li>
@@ -152,11 +152,11 @@
       <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Data Information</h6>
-          <a class="collapse-item" href="/customer-details">California Customers</a>
-          <a class="collapse-item" href="/employee-details">California Employees</a>
-          <a class="collapse-item" href="/classes-details">California Classes</a>
-          <a class="collapse-item" href="/shop-details">California Shop</a>
-          <a class="collapse-item" href="/entrylog-details">Entry Log</a>
+          <a class="collapse-item" href="{{ route('admin.customers') }}">California Customers</a>
+          <a class="collapse-item" href="{{ route('admin.employees') }}">California Employees</a>
+          <a class="collapse-item" href="{{ route('admin.classes') }}">California Classes</a>
+          <a class="collapse-item" href="{{ route('admin.shop') }}">California Shop</a>
+          <a class="collapse-item" href="{{ route('admin.entrylogs') }}">Entry Log</a>
         </div>
       </div>
     </li>
@@ -168,7 +168,7 @@
 
     <!-- New Transaction  -->
     <li class="nav-item">
-      <a class="nav-link" href="/transaction-details">
+      <a class="nav-link" href="{{ route('admin.transactions') }}">
         <i class="fas fa-file-invoice"></i></i>
         <span>Transactions</span></a>
     </li>
@@ -228,7 +228,7 @@
             </a>
             <!-- Dropdown - User Information -->
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-              <a class="dropdown-item" href="/settings">
+              <a class="dropdown-item" href="{{ route('admin.settings') }}">
                 <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
                 Settings
               </a>
