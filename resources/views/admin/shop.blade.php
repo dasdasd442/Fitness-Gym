@@ -224,7 +224,7 @@
                     <div class="row">
                       <div class="col-lg">
                         <div class="card1 py-4 px-4">
-                          <img src="{{ $product->product_image }}" style="width: 100%; border-radius: 5px;"/>
+                          <img src="../{{ $product->product_image }}" style="width: 100%; border-radius: 5px;"/>
                         </div>
                       </div>
                       <div class="col-lg">
@@ -260,7 +260,7 @@
                     <div class="row">
                       <div class="col-lg">
                         <div class="card1 py-4 px-4">
-                          <img src="{{ $service->class_image }}" style="width: 100%; border-radius: 5px;"/>
+                          <img src="../{{ $service->class_image }}" style="width: 100%; border-radius: 5px;"/>
                         </div>
                       </div>
                       <div class="col-lg">

@@ -26,12 +26,12 @@ class MainController extends Controller
     public function index() {
         $available_classes = DB::table('class')->select(DB::raw('*'))
                                 ->where('class_status', '=', 'receiving')->get()->toArray();
-        return view('layouts.index-layout', ['classes' => $available_classes, 'curpage' => "Home"]);
+        return view('mainpage.index-layout', ['classes' => $available_classes, 'curpage' => "Home"]);
     }
 
     public function locationPricing() {
         
-        return view('layouts.main-page-location-layout', ['curpage' => "Location and Pricing"]);
+        return view('mainpage.main-page-location-layout', ['curpage' => "Location and Pricing"]);
     }
 
     public function mainpageClasses() {
@@ -39,18 +39,18 @@ class MainController extends Controller
                                 ->join('employee', 'employee.employee_id', 'class.class_instructor_id')
                                 ->where('class_status', '=', 'receiving')->get()->toArray();
         
-        return view('layouts.main-page-classes', ['classes' => $available_classes, 'curpage' => "Classes"]);
+        return view('mainpage.main-page-classes', ['classes' => $available_classes, 'curpage' => "Classes"]);
     }
 
     public function mainpageShop() {
-        return view('layouts.main-page-shop', ['curpage' => "Shop"]);
+        return view('mainpage.main-page-shop', ['curpage' => "Shop"]);
     }
 
     public function mainpageAbout() {
-        return view('layouts.main-page-about', ['curpage' => "About Us"]);
+        return view('mainpage.main-page-about', ['curpage' => "About Us"]);
     }
 
     public function mainpageSignup() {
-        return view('layouts.main-page-sign-up', ['curpage' => "Sign Up"]);
+        return view('mainpage.main-page-sign-up', ['curpage' => "Sign Up"]);
     }
 }

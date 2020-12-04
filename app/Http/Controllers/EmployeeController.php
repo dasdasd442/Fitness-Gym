@@ -18,132 +18,29 @@ use DateTime;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Support\Facades\Hash;
-// use Barryvdh\DomPDF\PDF;
 
-class AdminController extends Controller
+class EmployeeController extends Controller
 {
     /* GET REQUEST */
     public function index() {
 
-        $transactions = DB::table('transactiondetail')->select(DB::raw('*'))->get()->toArray();
+        $customers = $this->customerDetails();
+        $logs = $this->entrylogDetails();
+        $shopDetails = $this->shopDetails();
+        $classesDetails = $this->classesDetails();
 
-        $totalMembers = DB::table('customer')->select('*')
-                                    ->whereRaw('membership_start_date != NULL OR 
-                                                membership_start_date != \'0000-00-00 00:00:00\' ')
-                                    ->get()->toArray();
-
-        $yearlyEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                                            ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
-                                            AND DATE (`transaction_date`) <= CURDATE()')
-                                            ->get()->toArray();
-        
-        $monthlyEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                                            ->whereRaw('YEAR(`transaction_date`) = YEAR(NOW()) AND
-                                            MONTH(`transaction_date`) = MONTH(NOW())')
-                                            ->get()->toArray();
-
-
-        // return $monthlyEarnings;
-        $dailyEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                                            ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-                                            AND DATE(`transaction_date`) <= CURDATE()')
-                                            ->get()->toArray();
-
-        $lifetimeEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))->get()->toArray();
-
-
-        $jan = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                ->whereRaw('MONTH(transaction_date) = 1 AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-                    
-        $feb = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                ->whereRaw('MONTH(transaction_date) = 2 AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-        $mar = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                 ->whereRaw('MONTH(transaction_date) = 3  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-        $apr = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                ->whereRaw('MONTH(transaction_date) = 4  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-        $may = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                ->whereRaw('MONTH(transaction_date) = 5  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-        $jun = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                ->whereRaw('MONTH(transaction_date) = 6  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-        $jul = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                ->whereRaw('MONTH(transaction_date) = 7  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-        $aug = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                ->whereRaw('MONTH(transaction_date) = 8  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-        $sep = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                ->whereRaw('MONTH(transaction_date) = 9  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-        $oct = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                ->whereRaw('MONTH(transaction_date) = 10  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-        $nov = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                ->whereRaw('MONTH(transaction_date) = 11  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-        $dec = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                ->whereRaw('MONTH(transaction_date) = 12  AND YEAR(transaction_date) = YEAR(CURDATE())')->get()->toArray();
-
-        $perMonth = array($jan[0]->earnings, $feb[0]->earnings, $mar[0]->earnings, $apr[0]->earnings, $may[0]->earnings, $jun[0]->earnings, $jul[0]->earnings, $aug[0]->earnings, $sep[0]->earnings, $oct[0]->earnings, $nov[0]->earnings, $dec[0]->earnings);
-
-        $allMonthEarnings = [];
-        for ($i = 0; $i <12; $i++) {
-            $allMonthEarnings[$i] = ($perMonth[$i]) ? $perMonth[$i] : 0;
-        }
-
-        $monthNamesWithEarnings = array('January' => $allMonthEarnings[0], 'February' => $allMonthEarnings[1], 'March' => $allMonthEarnings[2], 'April' => $allMonthEarnings[3], 'May' => $allMonthEarnings[4], 'June' => $allMonthEarnings[5], 'July' => $allMonthEarnings[6], 'August' => $allMonthEarnings[7], 'September' => $allMonthEarnings[8], 'October' => $allMonthEarnings[9], 'November' => 
-        $allMonthEarnings[10], 'December' => $allMonthEarnings[11]);
-
-
-        $transactionsToday = DB::table('transactiondetail')->select(DB::raw('COUNT(*) AS num_of_transaction'))
-                                ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-                                AND DATE(`transaction_date`) <= CURDATE()')->get()->toArray();
-
-        $walkinTransactions = DB::table('transactiondetail')
-                                ->select(DB::raw('*'))
-                                ->join('orders', 'orders.transaction_id', 'transactiondetail.transaction_id')
-                                ->whereRaw('orders.customer_id IS NULL')->get()->toArray();
-
-        $memberTransactions = DB::table('transactiondetail')
-                                ->select(DB::raw('*'))
-                                ->join('orders', 'orders.transaction_id', 'transactiondetail.transaction_id')
-                                ->whereRaw('orders.customer_id IS NOT NULL')->get()->toArray();
-    
-        
-        return view('admin.index', ['totalMembers' => $totalMembers, 
-                    'transactions' => $transactions,
-                    'todaysTransactions' => $transactionsToday,
-                    'yearlyEarnings' => $yearlyEarnings,
-                    'monthlyEarnings' => $monthlyEarnings,
-                    'dailyEarnings' => $dailyEarnings,
-                    'lifetimeEarnings' => $lifetimeEarnings,
-                    'allMonthEarnings' => $allMonthEarnings,
-                    'monthNamesWithEarnings' => $monthNamesWithEarnings,
-                    'walkinTransactions' => $walkinTransactions,
-                    'memberTransactions' => $memberTransactions
+        return view('employee.index', ['customers' => $customers, 
+                    'logs' => $logs,
+                    'services' => $shopDetails[0],
+                    'products' => $shopDetails[1],
+                    'classes' => $classesDetails[0],
+                    'customerclass' => $classesDetails[1]
         ]);
     }
 
     public function login() {
         return view('admin.login');
-    }
-
-    public function register() {
-        return view('admin.register');
-    }
-
-    public function transactionDetails() {
-        $transactions = DB::table('transactiondetail')
-                                ->select(DB::raw('*'))
-                                ->join('employee', 'employee.employee_id', 'transactiondetail.employee_id')
-                                ->get()
-                                ->toArray();
-
-        $orders = DB::table('orders')
-                            ->select(DB::raw('*'))
-                            ->leftJoin('customer', 'customer.customer_id', 'orders.customer_id')
-                            ->leftJoin('product', 'product.product_id', 'orders.product_id')
-                            ->leftJoin('services', 'services.service_id', 'orders.service_id')
-                            ->get()
-                            ->toArray();
-    
-        return view('admin.transactionDetails', ['transactions' => $transactions, 'orders' => $orders]);
     }
 
     public function classesDetails() {
@@ -159,7 +56,8 @@ class AdminController extends Controller
                         ->get()
                         ->toArray();
 
-        return view('admin.classes', ['classes' => $classes, 'customerclass' => $customerclass]);
+
+        return [$classes, $customerclass];
     }
 
     public function customerDetails() {
@@ -183,28 +81,11 @@ class AdminController extends Controller
             }
         }
 
-        return view('admin.customers', ['customers' => $customers]);
-    }
-
-    public function employeeDetails() {
-        // this gives idk what kind of date format 
-        // $employee = Employee::where('employee_type', '!=', 'Admin')
-        //             ->where('employee_status', '!=', 'fired')
-        //             ->get()->toArray();
-
-        $employee = DB::table('Employee')
-                    ->select(DB::raw('*'))
-                    ->where('employee_type','!=', 'Admin')
-                    ->where('employee_status', '!=', 'fired')
-                    ->get()
-                    ->toArray();
-
-        return view('admin.employees', ['employees' => $employee]);
+        return $customers;
     }
 
     public function shopDetails() {
-
-
+        
         $services = DB::table('services')
                     ->select(DB::raw('*'))
                     ->join('class', 'class.class_id', '=', 'services.service_class_id')
@@ -212,7 +93,8 @@ class AdminController extends Controller
                     ->get()
                     ->toArray();
         $products = Product::all();
-        return view('admin.shop', ['products' => $products, 'services' => $services]);
+
+        return [$services, $products];
     }
 
     public function entrylogDetails() {
@@ -224,25 +106,29 @@ class AdminController extends Controller
                     ->get()
                     ->toArray();
 
-        // return $logs;
-
-        return view('admin.entrylogs', ['logs' => $logs]);
+        return $logs;
     }
 
-    public function settings() {
-        return view('admin.settings');
-    }
+    public function newTransaction() {
+        $dailyEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
+                                            ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+                                            AND DATE(`transaction_date`) <= CURDATE()')
+                                            ->get()->toArray();
 
-    public function showNewTransactionPage() {
+        $transactionsToday = DB::table('transactiondetail')->select(DB::raw('COUNT(*) AS num_of_transaction'))
+                                            ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+                                            AND DATE(`transaction_date`) <= CURDATE()')->get()->toArray();
+
 
         $latest_transaction = DB::table('transactiondetail')
-                                        ->select(DB::raw('*'))
-                                        ->leftJoin('employee', 'employee.employee_id', 'transactiondetail.employee_id')
-                                        ->orderByDesc('transaction_id')
-                                        ->limit(1)
-                                        ->get()
-                                        ->toArray();
+                            ->select(DB::raw('*'))
+                            ->leftJoin('employee', 'employee.employee_id', 'transactiondetail.employee_id')
+                            ->orderByDesc('transaction_id')
+                            ->limit(1)
+                            ->get()
+                            ->toArray();
         $latest_transaction_id = $latest_transaction[0]->transaction_id;
+        $status = $latest_transaction[0]->status;
 
         $current_orders = DB::table('orders')
                             ->select(DB::raw('*'))
@@ -252,52 +138,32 @@ class AdminController extends Controller
                             ->where('transaction_id', '=', $latest_transaction_id)
                             ->get()
                             ->toArray();
-        
-        return view('admin.addTransaction', [
-                        'orders' => $current_orders, 
-                        'latest_transaction_id' => $latest_transaction_id,
-                        'transaction' => $latest_transaction[0]
-        ]);
-    }
 
-    public function pdfView() {
-
-        $transactions = DB::table('transactiondetail')->select('*')
-        ->join('orders', 'orders.transaction_id', 'transactiondetail.transaction_id')
-        ->leftJoin('product', 'product.product_id', 'orders.product_id')
-        ->leftJoin('services', 'services.service_id', 'orders.service_id')
-        ->join('employee', 'employee.employee_id', 'transactiondetail.employee_id')
-        ->whereRaw('orders.product_id IS NOT NULL OR orders.service_id IS NOT NULL')
-        ->get()->toArray();
-
-        return view('admin.pdfView', ['transactions' => $transactions]);
-    }
-
-    /* POST REQUEST */
-    public function addEmployee() {
-       
-        $curDate = Carbon::now();
-        try {
-            $employee = new Employee([
-                'employee_name' => request('employee_name'),
-                'employee_age' => request('employee_age'),
-                'employee_email' => request('employee_email'),
-                'employee_password' => Hash::make('password'),
-                'employee_type' => 'Clerk',
-                'employee_status' => 'working',
-                'date_hired' => $curDate->toDateString()
+        if ($status == 'completed') {
+            return view('employee.new-transaction', [
+                'dailyEarnings' => $dailyEarnings, 
+                'todaysTransactions' => $transactionsToday,
+                'latest_transaction_id' => $latest_transaction_id,
+                'orders' => $current_orders,
+                'transaction' => $latest_transaction[0],
+                'displayMe' => 'hide'
             ]);
-    
-            $employee->save();
-            return redirect(route('admin.employees'))->with('msg', 'Added Successfully!');
-        } catch (\Illuminate\Database\QueryException $ex) {
-            return redirect(route('admin.employees'))->with('msg', 'Cannot Perform Action!');  
-        } 
+        } else {
+            return view('employee.new-transaction', [
+                'dailyEarnings' => $dailyEarnings, 
+                'todaysTransactions' => $transactionsToday,
+                'latest_transaction_id' => $latest_transaction_id,
+                'orders' => $current_orders,
+                'transaction' => $latest_transaction[0],
+                'displayMe' => 'show'
+            ])->with('showIt', 'show');
+        }
     }
 
-    public function addCustomer() {
 
-        try { 
+    /*** POST REQUESTS */
+    public function addCustomer() {
+        try {
             DB::table('customer')->insert([
                 'customer_name' => request('customer_name'),
                 'customer_age' => request('customer_age'),
@@ -307,46 +173,68 @@ class AdminController extends Controller
                 'membership_expires_in' => 0,
                 ]
             );
-            return redirect(route('admin.customers'))->with('msg', 'Added Successfully!');
+            return redirect(route('employee.index').'#california-customers')->with('msg', 'Added Successfully!');
         } catch(\Illuminate\Database\QueryException $ex) { 
-            return redirect(route('admin.customers'))->with('msg', 'Cannot Perform Action!');  
+            return redirect(route('employee.index').'#california-customers')->with('msg', 'Cannot Perform Action!');  
+            // dd($ex);
         }
     }
 
-    public function addNewLog() {
+    public function addNewMember() {
 
         if (!DB::table('customer')->select('customer_id')->where('customer_id', '=', request('customer_id'))->get()->toArray()) {
-            return redirect(route('admin.entrylogs'))->with('msg', 'Cannot Perform Action!');
+            return redirect(route('employee.index'))->with('msg', 'Cannot Perform Action!');
         }
 
-        if (request('enter')) {
-            $log = new EntryLog([
-                'customer_id' => request('customer_id'),
-                'date_entry' => Carbon::now()
-            ]);
-            $log->save();
-            $msg = 'Added Successfully!';
-        } else if (request('exit')) {
-            if (Customer::findOrFail(request('customer_id'))) {
-                $log = DB::table('Entrylog')
-                        ->where('customer_id', '=', request('customer_id'))
-                        ->whereNull('date_exit')
-                        ->update(['date_exit' => Carbon::now()]);
+        if (!DB::table('customerclass')->select('class_id')
+                ->where('customer_id', '=', request('customer_id'))
+                ->where('class_id', '=', request('class_id'))
+                ->get()->toArray()) {
+            
+            $customerClass = new CustomerClass([
+                'class_id' => request('class_id'),
+                'customer_id' => request('customer_id')
+            ]);           
+            
+            $class = DB::table('class')->select(DB::raw('*'))
+                                    ->where('class_id', '=', request('class_id'))
+                                    ->get()->toArray();
 
-                $msg = $log ? 'Updated Successfully!' : 'Cannot Perform Action!';
-                
-            } else {
-                $msg = 'Cannot Perform Action!';
+            $class_max_number = $class[0]->class_max_number;
+            $new_class_cur_number = $class[0]->class_cur_number + 1;
+
+            if ($class[0]->class_cur_number >= $class_max_number) {
+                return redirect(route('employee.index'))->with('msg', 'Cannot Perform Action!');
             }
-        }
+            
+            if ($new_class_cur_number == $class_max_number) {
+                $customerClass->save();
+                DB::table('class')->where('class_id', '=', request('class_id'))
+                                    ->update(['class_cur_number' => $new_class_cur_number, 'class_status' => 'full']);
+                
+                DB::table('services')->where('service_class_id', '=', request('class_id'))
+                                    ->update(['service_status' => 'full']);
+            } else {
+                $customerClass->save();
+                DB::table('class')->where('class_id', '=', request('class_id'))
+                                ->update(['class_cur_number' => $new_class_cur_number]);
 
-        return redirect(route('admin.entrylogs'))->with('msg', $msg);
+                DB::table('services')->where('service_class_id', '=', request('class_id'))
+                                ->update(['service_status' => 'full']);
+            }
+            
+            $msg = 'Added Successfully!';
+        } else {
+            $msg = 'Cannot Perform Action!';
+        }
+        
+        return redirect(route('employee.index'))->with('msg', $msg);
     }
 
-    public function addNewClass() {
+    public function addClass() {
 
         if (!DB::table('employee')->select('employee_id')->where('employee_id', '=', request('class_instructor_id'))->get()->toArray()) {
-            return redirect(route('admin.classes'))->with('msg', 'Cannot Perform Action!');
+            return redirect(route('employee.index').'#california-classes')->with('msg', 'Cannot Perform Action!');
         }
         
         if (!empty(request('class_image'))) {
@@ -361,7 +249,7 @@ class AdminController extends Controller
             $validator = Validator::make($fileArray, $rules);
     
             if ($validator->fails()) {
-                return redirect(route('admin.classes'))->with('msg', 'Cannot Perform Action!');
+                return redirect(route('employee.index').'#california-classes')->with('msg', 'Cannot Perform Action!');
             } else {
                 $class_image = request()->file('class_image')->store('uploads');
             }
@@ -402,61 +290,10 @@ class AdminController extends Controller
 
         $service->save();
 
-        return redirect(route('admin.classes'))->with('msg', $msg);
+        return redirect(route('employee.index').'#california-classes')->with('msg', $msg);
     }
 
-    public function addNewClassMember() {
-
-        if (!DB::table('customer')->select('customer_id')->where('customer_id', '=', request('customer_id'))->get()->toArray()) {
-            return redirect(route('admin.classes'))->with('msg', 'Cannot Perform Action!');
-        }
-
-        if (!DB::table('customerclass')->select('class_id')
-                ->where('customer_id', '=', request('customer_id'))
-                ->where('class_id', '=', request('class_id'))
-                ->get()->toArray()) {
-            
-            $customerClass = new CustomerClass([
-                'class_id' => request('class_id'),
-                'customer_id' => request('customer_id')
-            ]);           
-            
-            $class = DB::table('class')->select(DB::raw('*'))
-                                    ->where('class_id', '=', request('class_id'))
-                                    ->get()->toArray();
-
-            $class_max_number = $class[0]->class_max_number;
-            $new_class_cur_number = $class[0]->class_cur_number + 1;
-
-            if ($class[0]->class_cur_number >= $class_max_number) {
-                return redirect(route('admin.classes'))->with('msg', 'Cannot Perform Action!');
-            }
-            
-            if ($new_class_cur_number == $class_max_number) {
-                $customerClass->save();
-                DB::table('class')->where('class_id', '=', request('class_id'))
-                                    ->update(['class_cur_number' => $new_class_cur_number, 'class_status' => 'full']);
-                
-                DB::table('services')->where('service_class_id', '=', request('class_id'))
-                                    ->update(['service_status' => 'full']);
-            } else {
-                $customerClass->save();
-                DB::table('class')->where('class_id', '=', request('class_id'))
-                                ->update(['class_cur_number' => $new_class_cur_number]);
-
-                DB::table('services')->where('service_class_id', '=', request('class_id'))
-                                ->update(['service_status' => 'full']);
-            }
-            
-            $msg = 'Added Successfully!';
-        } else {
-            $msg = 'Cannot Perform Action!';
-        }
-        
-        return redirect(route('admin.classes'))->with('msg', $msg);
-    }
-
-    public function addNewProduct() {
+    public function addProduct() {
         
         if (!empty(request('product_image'))) {
             $postData = request()->only('product_image');
@@ -470,7 +307,7 @@ class AdminController extends Controller
             $validator = Validator::make($fileArray, $rules);
     
             if ($validator->fails()) {
-                return redirect(route('admin.shop'))->with('msg', 'Cannot Perform Action!');
+                return redirect(route('employee.index').'#california-shop')->with('msg', 'Cannot Perform Action!');
             } else {
                 $product_image = request()->file('product_image')->store('uploads');
             }
@@ -493,18 +330,37 @@ class AdminController extends Controller
         $product->save();
         $msg = 'Added Successfully!';
         
-        return redirect(route('admin.shop'))->with('msg', $msg);
+        return redirect(route('employee.index').'#california-shop')->with('msg', $msg);
     }
 
-    public function renewMembership() {
+    public function addNewLog() {
 
-        DB::table('customer')->where('customer_id', '=', request('customer_id'))
-                            ->update(['membership_start_date' => DB::raw('NOW()'), 
-                                    'membership_end_date' => DB::raw('DATE_ADD(NOW(), INTERVAL 1 MONTH)'),
-                                    'membership_expires_in' => 30,
-                                    'customer_status' => request('membership_type')
-                            ]);
-        return redirect(route('admin.customers'))->with('msg', 'Updated Successfully!');
+        if (!DB::table('customer')->select('customer_id')->where('customer_id', '=', request('customer_id'))->get()->toArray()) {
+            return redirect(route('employee.index').'#entry-log')->with('msg', 'Cannot Perform Action!');
+        }
+
+        if (request('enter')) {
+            $log = new EntryLog([
+                'customer_id' => request('customer_id'),
+                'date_entry' => Carbon::now()
+            ]);
+            $log->save();
+            $msg = 'Added Successfully!';
+        } else if (request('exit')) {
+            if (Customer::findOrFail(request('customer_id'))) {
+                $log = DB::table('Entrylog')
+                        ->where('customer_id', '=', request('customer_id'))
+                        ->whereNull('date_exit')
+                        ->update(['date_exit' => Carbon::now()]);
+
+                $msg = $log ? 'Updated Successfully!' : 'Cannot Perform Action!';
+                
+            } else {
+                $msg = 'Cannot Perform Action!';
+            }
+        }
+
+        return redirect(route('employee.index').'#entry-log')->with('msg', $msg);
     }
 
     // ANG EMPLOYEE_ID DIRI KAY ILISANAN
@@ -532,21 +388,23 @@ class AdminController extends Controller
             $last_insert_id = $transactiondetail->transaction_id;
             // DO THIS LOGIC HERE
             // ADD AN INSTANCE TO TRANSACTIONDETAILS
-            return redirect(route('add-new-transaction-page'))->with('latest_transaction_id', $last_insert_id);
+            return redirect(route('employee.transaction').'#transaction')
+                        ->with('latest_transaction_id', $last_insert_id);
 
         } else {
-            return redirect(route('add-new-transaction-page'))->with('latest_transaction_id', $id);
+            return redirect(route('employee.transaction').'#transaction')
+                        ->with('latest_transaction_id', $id);
         }
     }
 
     public function addNewOrder() {
 
         if (empty(request('service_id')) && empty(request('product_id'))) {
-            return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');  
+            return redirect(route('employee.transaction').'#transaction')->with('msg', 'Cannot Perform Action!');  
         }
 
         if (!empty(request('service_id')) && !empty(request('product_id'))) {
-            return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');  
+            return redirect(route('employee.transaction').'#transaction')->with('msg', 'Cannot Perform Action!');  
             return "di sila empty duha";
         }
 
@@ -569,13 +427,13 @@ class AdminController extends Controller
             ->toArray();
         
             if (count($productExists) <= 0) {
-                return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');  
+                return redirect(route('employee.transaction').'#transaction')->with('msg', 'Cannot Perform Action!');  
                 return "product doesnt exists";
             }
 
             if ($productExists[0]->product_stock == 0) {
                 // out of stock, nasayop lang ug tuplok ang employee
-                return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');  
+                return redirect(route('employee.transaction').'#transaction')->with('msg', 'Cannot Perform Action!');  
                 return "product was out of stock";
             } else {
                 // available
@@ -588,7 +446,7 @@ class AdminController extends Controller
                     // if less than 0, lapas ang na input so error
                     $stocks_left = $productExists[0]->product_stock - request('total_qty');
                     if ($stocks_left < 0) {
-                        return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');  
+                        return redirect(route('employee.transaction').'#transaction')->with('msg', 'Cannot Perform Action!');  
                         return "stock went a negative value";
                     }
                 }
@@ -606,13 +464,13 @@ class AdminController extends Controller
                                 ->get()->toArray();
             
             if (count($serviceExists) <= 0) {
-                return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');  
+                return redirect(route('employee.transaction').'#transaction')->with('msg', 'Cannot Perform Action!');  
                 return "service doesnt exist";
             }
 
             if ($serviceExists[0]->service_status != 'available') {
-                return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');  
                 return "service not available";
+                return redirect(route('employee.transaction').'#transaction')->with('msg', 'Cannot Perform Action!');  
             } else {
               // ang employee na dapat mo add sa customer ngadto sa california class tab  
               $service = true;
@@ -631,7 +489,7 @@ class AdminController extends Controller
             
             // wa ni exist
             if (count($customer) <= 0) {
-                return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');  
+                return redirect(route('employee.transaction').'#transaction')->with('msg', 'Cannot Perform Action!');  
             } else {
                 $customerExists = true;
             }
@@ -703,22 +561,22 @@ class AdminController extends Controller
                         ->update(['order_count' => $new_order_count, 'total_payment' => $current_total_payment]);
             
 
-        return redirect(route('add-new-transaction-page'))->with('msg', 'Added Successfully!');
+        return redirect(route('employee.transaction').'#transaction')->with('msg', 'Added Successfully!');
         
     }
 
     public function finishTransaction() {
 
         if (request('total_payment') <= 0) {
-            return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');  
+            return redirect(route('employee.transaction'))->with('msg', 'Cannot Perform Action!');  
         }
 
         if (empty(request('amount_paid'))) {
-            return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');  
+            return redirect(route('employee.transaction'))->with('msg', 'Cannot Perform Action!');  
             return "wa ni bayad";
         }
         if (request('amount_change') < 0) {
-            return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');  
+            return redirect(route('employee.transaction'))->with('msg', 'Cannot Perform Action!');  
             return "kuwang ang bayad";
         }
 
@@ -756,25 +614,21 @@ class AdminController extends Controller
                 ->update(['amount_paid' => $amount_paid, 'amount_change' => $amount_change, 'status' => 'completed']);
         
         
-        return redirect(route('admin.transactions'))->with('showIt', 'hide');
+        return redirect(route('employee.transaction'))->with('showIt', 'hide');
     }
 
-    public function generateReport() {
+    /*** UPDATE REQUESTS */
+    public function renewMembership() {
         
-
-        $transactions = DB::table('transactiondetail')->select('*')
-        ->join('orders', 'orders.transaction_id', 'transactiondetail.transaction_id')
-        ->leftJoin('product', 'product.product_id', 'orders.product_id')
-        ->leftJoin('services', 'services.service_id', 'orders.service_id')
-        ->join('employee', 'employee.employee_id', 'transactiondetail.employee_id')
-        ->whereRaw('orders.product_id IS NOT NULL OR orders.service_id IS NOT NULL')
-        ->get()->toArray();
-
-        $pdf = PDF::loadView('admin.pdfView', ['transactions' => $transactions]);
-        return $pdf->download('sample.pdf');
+        DB::table('customer')->where('customer_id', '=', request('customer_id'))
+        ->update(['membership_start_date' => DB::raw('NOW()'), 
+                'membership_end_date' => DB::raw('DATE_ADD(NOW(), INTERVAL 1 MONTH)'),
+                'membership_expires_in' => 30,
+                'customer_status' => request('membership_type')
+        ]);
+        return redirect(route('employee.index').'#california-customers')->with('msg', 'Updated Successfully!');
     }
 
-    /* UPDATE REQUEST */
     public function updateClass() {
 
         if (!empty(request('class_image'))) {
@@ -789,7 +643,7 @@ class AdminController extends Controller
             $validator = Validator::make($fileArray, $rules);
     
             if ($validator->fails()) {
-                return redirect(route('admin.classes'))->with('msg', 'Cannot Perform Action!');
+                return redirect(route('employee.index').'#california-classes')->with('msg', 'Cannot Perform Action!');
             } else {
                 $class_image = request()->file('class_image')->store('uploads');
                 DB::table('class')->where('class_id', '=', request('class_id'))
@@ -856,7 +710,7 @@ class AdminController extends Controller
         }
 
 
-        return redirect(route('admin.classes'))->with('msg', $msg);
+        return redirect(route('employee.index').'#california-classes')->with('msg', $msg);
     }
 
     public function updateProduct() {
@@ -872,7 +726,7 @@ class AdminController extends Controller
             $validator = Validator::make($fileArray, $rules);
     
             if ($validator->fails()) {
-                return redirect(route('admin.classes'))->with('msg', 'Cannot Perform Action!');
+                return redirect(route('employee.index').'#california-shop')->with('msg', 'Cannot Perform Action!');
             } else {
                 $product_image = request()->file('product_image')->store('uploads');
                 DB::table('product')->where('product_id', '=', request('class_id'))
@@ -903,14 +757,14 @@ class AdminController extends Controller
                     DB::table('product')->where('product_id', '=', request('product_id'))
                     ->update(['product_stock' => $product_stock, 'product_status' => 'unavailable']);
                 } catch (\Illuminate\Database\QueryException $ex) {
-                    return redirect(route('admin.classes'))->with('msg', 'Cannot Perform Action!');
+                    return redirect(route('employee.index').'#california-shop')->with('msg', 'Cannot Perform Action!');
                 }
             } else {
                try {
                     DB::table('product')->where('product_id', '=', request('product_id'))
                     ->update(['product_stock' => $product_stock, 'product_status' => 'available']);
                } catch (\Illuminate\Database\QueryException $ex) {
-                    return redirect(route('admin.classes'))->with('msg', 'Cannot Perform Action!');
+                    return redirect(route('employee.index').'#california-shop')->with('msg', 'Cannot Perform Action!');
                }
             }
             $msg = 'Updated Successfully!';
@@ -923,26 +777,11 @@ class AdminController extends Controller
             }
             
         $msg = 'Updated Successfully!';
-        return redirect(route('admin.shop'))->with('msg', $msg);
+        return redirect(route('employee.index').'#california-shop')->with('msg', $msg);
     }
 
-    /* DELETE REQUEST */
-    public function removeEmployee() {
-
-        // find the employee
-        $employee = Employee::find(request('employee_id'));
-
-        // update an employee (cannot actually delete, otherwise 
-        // those tables that references this employee will throw an error)
-        $employee->employee_status = 'fired';
-        $employee->employee_email = '';
-        $employee->save();
-        
-        return redirect(route('admin.employees'))->with('msg', 'Removed Successfully!');
-    }
-
+    /*** DELETE REQUESTS */
     public function removeClassMember() {
-
         $totalNow = intval(request('class_cur_number')) - 1;
         $customerclass_id = request('customerclass_id');
         $class_id = request('class_id');
@@ -969,7 +808,7 @@ class AdminController extends Controller
             $msg = 'Cannot Perform Action!';
         }
     
-        return redirect(route('admin.classes'))->with('msg', $msg);
+        return redirect(route('employee.index').'#california-classes')->with('msg', $msg);
     }
 
     public function removeClassEntirely() {
@@ -990,7 +829,7 @@ class AdminController extends Controller
             }
         }
 
-        return redirect(route('admin.classes'))->with('msg', $msg);
+        return redirect(route('employee.index').'#california-classes')->with('msg', $msg);
     }
 
     public function removeProduct() {
@@ -1001,7 +840,7 @@ class AdminController extends Controller
         $product->save();
 
         
-        return redirect(route('admin.shop'))->with('msg', 'Removed Successfully!');
+        return redirect(route('employee.index').'#california-shop')->with('msg', 'Removed Successfully!');
     }
 
     public function removeOrder() {
@@ -1030,10 +869,10 @@ class AdminController extends Controller
                                             ->update(['order_count' => $current_order_count, 
                                                         'total_payment' => $current_total_payment]);
             
-            return redirect(route('add-new-transaction-page'))->with('msg', 'Removed Successfully!');
+            return redirect(route('employee.transaction').'#transaction')->with('msg', 'Removed Successfully!');
 
         } else {
-            return redirect(route('add-new-transaction-page'))->with('msg', 'Cannot Perform Action!');
+            return redirect(route('employee.transaction').'#transaction')->with('msg', 'Cannot Perform Action!');
         }
 
 
@@ -1054,8 +893,6 @@ class AdminController extends Controller
 
         DB::table('transactiondetail')->where('transaction_id', '=', request('transaction_id'))->delete();
 
-        return redirect(route('admin.transactions'));
+        return redirect(route('employee.transaction'));
     }
 }
-
-

@@ -5,14 +5,14 @@
             
             <!-- Page Heading -->
             <br />
-            <h1 class="h1 mb-2 text-gray-800"><i class="fas fa-file-invoice icon-animation text-info icons"></i>Current Transaction</h1>
+            <h1 class="h1 mb-2 text-gray-800"><i class="fas fa-file-invoice icon-animation text-info icons"></i>Current Transaction: {{ $latest_transaction_id }}</h1>
             <br />
 
             <div id="myTransaction">
               <!-- DataTales Example -->
               <div class="card shadow mb-4">
                 <div class="card-header py-3"> 
-                    Specify Order Details{{ $latest_transaction_id }}
+                    Specify Order Details
                 </div>
                 <div class="card-body">
                   <div class="modal-body">
@@ -154,7 +154,7 @@
                             
                            @if ($orders)
                             @if ($orders[0]->customer_id)
-                              <b>Customer ID: <span class="text-info">{{ $order->customer_id }}</span></b>
+                              <b>Customer ID: <span class="text-info">{{ $order->customer_id }}</span></b><br/>
                               <b>Customer Name: <span class="text-info">{{ $order->customer_name }}</span></b>
                             @else
                               <b>Customer ID: <span class="text-info">Walk In</span></b>  
@@ -202,6 +202,7 @@
                               </tbody>
                             </table>
                           </div>
+                          
                           <form method="POST" action="{{ route('finish-transaction') }}">
                             @csrf
                             <div class="card text-white bg-dark mb-3 mt-3">

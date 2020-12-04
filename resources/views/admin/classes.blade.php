@@ -146,7 +146,7 @@
                         </div>
                         <div class="form-group">
                           <label for="">Class Instructor</label>
-                          <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Enter Class Instructor ID" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"name="class_instructor_id">
+                          <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Enter Class Instructor ID" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" name="class_instructor_id">
                         </div>
                         <div class="form-group">
                           <label for="">Class Price</label>
@@ -200,7 +200,7 @@
                     <div class="row">
                       <div class="col-lg">
                         <div class="card1 py-4 px-4">
-                          <img src="{{ $class->class_image }}" style="width: 100%; border-radius: 5px;"/>
+                          <img src="../{{ $class->class_image }}" style="width: 100%; border-radius: 5px;"/>
                         </div>
                       </div>
                       <div class="col-lg">
@@ -226,7 +226,7 @@
                               @csrf
                                 <div class="form-group">
                                   <label for="">Enter Customer ID</label>
-                                  <input type="text" class="form-control" id="exampleInputEmail1" placeholder="Enter Customer ID" name="customer_id">
+                                  <input type="text" class="form-control" id="exampleInputEmail1" placeholder="Enter Customer ID" name="customer_id" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                 </div>
                                 <input type="hidden" name="class_id" value="{{ $class->class_id }}">
                                 <button type="submit" class="btn btn-primary full-btn">Add Member</button>
