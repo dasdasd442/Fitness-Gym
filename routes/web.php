@@ -5,6 +5,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\MainController;
 
 /*
@@ -94,6 +95,13 @@ Route::prefix('employee')->group(function () {
 });
 
 
+
+Route::prefix('customer')->group(function () {
+    Route::get('/', function() { return redirect(route('customer.index')); });
+    Route::get('/dashboard', [CustomerController::class, 'index'])->name('customer.index');
+    Route::get('/available-classes', [CustomerController::class, 'classes'])->name('customer.classes');
+    Route::get('/shop', [CustomerController::class, 'shop'])->name('customer.shop');
+});
 
 
 /***  MAINPAGE ROUTES ***/
