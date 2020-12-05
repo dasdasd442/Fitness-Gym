@@ -18,10 +18,62 @@ use DateTime;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class MainController extends Controller
 {
+    // public function __construct()
+    // {
+    //     $this->middleware('guest');
+    // }
+
+    public function login(Request $request) {
+        // return $request;
+        $this->validate($request, [
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        // intellisense senses this an error but it's actually not
+        if (Auth::guard('customer')
+                ->attempt(['email' => $request->email, 'password' => $request->password])) 
+        {
+            return redirect(route('customer.index'));
+        }
+
+        return redirect()->back()->withInput($request->only('email'));
+    }
+
+    public function logout() {
+        if (Auth::check()) {
+            Auth::guard('customer')->logout();
+        }
+        return redirect(route('mainpage-index'));
+    }
+
+    public function signupSubmit(Request $request) {
+        
+        try {
+            DB::table('customer')->insert([
+                'customer_name' => $request->customer_name,
+                'customer_age' => $request->customer_age,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'customer_status' => 'No Subscription',
+                'membership_expires_in' => 0,
+                ]
+            );
+            return redirect(route('mainpage-index'))->with('msg', 'Added Successfully!');
+        } catch(\Illuminate\Database\QueryException $ex) { 
+            return redirect()->back()
+            ->with(['error' => 'Email is already taken.', 'customer_name' => $request->customer_name, 'customer_age' => $request->customer_age]);
+            // dd($ex);
+        }
+
+    }
+    
+    
     // GET REQUESTS
     public function index() {
         $available_classes = DB::table('class')->select(DB::raw('*'))
@@ -30,7 +82,6 @@ class MainController extends Controller
     }
 
     public function locationPricing() {
-        
         return view('mainpage.main-page-location-layout', ['curpage' => "Location and Pricing"]);
     }
 
@@ -43,7 +94,13 @@ class MainController extends Controller
     }
 
     public function mainpageShop() {
-        return view('mainpage.main-page-shop', ['curpage' => "Shop"]);
+        
+
+        $products = DB::table('product')->select(DB::raw('*'))->get()->toArray();
+
+        // return $products;
+        
+        return view('mainpage.main-page-shop', ['curpage' => "Shop", 'products' => $products]);
     }
 
     public function mainpageAbout() {

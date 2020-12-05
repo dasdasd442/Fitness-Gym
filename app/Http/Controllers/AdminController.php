@@ -24,9 +24,17 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
-    /* GET REQUEST */
-    public function index() {
+    public function __construct()
+    {
+        $this->middleware('auth:admin');
+    }
 
+
+
+    /* GET REQUEST */
+    public function index(Request $request) {
+        
+        $authenticatedUser = $request->user();
         $transactions = DB::table('transactiondetail')->select(DB::raw('*'))->get()->toArray();
 
         $totalMembers = DB::table('customer')->select('*')
@@ -104,7 +112,8 @@ class AdminController extends Controller
                                 ->whereRaw('orders.customer_id IS NOT NULL')->get()->toArray();
     
         
-        return view('admin.index', ['totalMembers' => $totalMembers, 
+        return view('admin.index', ['authenticatedUser' => $authenticatedUser,
+                    'totalMembers' => $totalMembers, 
                     'transactions' => $transactions,
                     'todaysTransactions' => $transactionsToday,
                     'yearlyEarnings' => $yearlyEarnings,
@@ -118,18 +127,13 @@ class AdminController extends Controller
         ]);
     }
 
-    public function login() {
-        return view('admin.login');
-    }
+    public function transactionDetails(Request $request) {
+        $authenticatedUser = $request->user();
 
-    public function register() {
-        return view('admin.register');
-    }
-
-    public function transactionDetails() {
         $transactions = DB::table('transactiondetail')
                                 ->select(DB::raw('*'))
-                                ->join('employee', 'employee.employee_id', 'transactiondetail.employee_id')
+                                ->leftJoin('employee', 'employee.employee_id', 'transactiondetail.employee_id')
+                                ->leftJoin('admin', 'admin.admin_id', 'transactiondetail.admin_id')
                                 ->get()
                                 ->toArray();
 
@@ -141,10 +145,17 @@ class AdminController extends Controller
                             ->get()
                             ->toArray();
     
-        return view('admin.transactionDetails', ['transactions' => $transactions, 'orders' => $orders]);
+        return view('admin.transactionDetails', [
+                        'transactions' => $transactions, 
+                        'orders' => $orders, 
+                        'authenticatedUser' => $authenticatedUser
+        ]);
     }
 
-    public function classesDetails() {
+    public function classesDetails(Request $request) {
+        
+        $authenticatedUser = $request->user();
+
         $classes = DB::table('class')
                     ->select(DB::raw('*'))
                     ->join('employee', 'employee.employee_id', 'class.class_instructor_id')
@@ -157,10 +168,17 @@ class AdminController extends Controller
                         ->get()
                         ->toArray();
 
-        return view('admin.classes', ['classes' => $classes, 'customerclass' => $customerclass]);
+        return view('admin.classes', [
+                        'classes' => $classes, 
+                        'customerclass' => $customerclass,
+                        'authenticatedUser' => $authenticatedUser
+        ]);
     }
 
-    public function customerDetails() {
+    public function customerDetails(Request $request) {
+
+        $authenticatedUser = $request->user();
+        
         $customers = DB::table('Customer')->select(DB::raw('*'))->get()->toArray();
 
         $expires_in = 0;
@@ -181,10 +199,12 @@ class AdminController extends Controller
             }
         }
 
-        return view('admin.customers', ['customers' => $customers]);
+        return view('admin.customers', ['customers' => $customers, 'authenticatedUser' => $authenticatedUser]);
     }
 
-    public function employeeDetails() {
+    public function employeeDetails(Request $request) {
+
+        $authenticatedUser = $request->user();
         // this gives idk what kind of date format 
         // $employee = Employee::where('employee_type', '!=', 'Admin')
         //             ->where('employee_status', '!=', 'fired')
@@ -197,12 +217,12 @@ class AdminController extends Controller
                     ->get()
                     ->toArray();
 
-        return view('admin.employees', ['employees' => $employee]);
+        return view('admin.employees', ['employees' => $employee, 'authenticatedUser' => $authenticatedUser]);
     }
 
-    public function shopDetails() {
+    public function shopDetails(Request $request) {
 
-
+        $authenticatedUser = $request->user();
         $services = DB::table('services')
                     ->select(DB::raw('*'))
                     ->join('class', 'class.class_id', '=', 'services.service_class_id')
@@ -210,10 +230,12 @@ class AdminController extends Controller
                     ->get()
                     ->toArray();
         $products = Product::all();
-        return view('admin.shop', ['products' => $products, 'services' => $services]);
+        return view('admin.shop', ['products' => $products, 'services' => $services, 'authenticatedUser' => $authenticatedUser]);
     }
 
-    public function entrylogDetails() {
+    public function entrylogDetails(Request $request) {
+
+        $authenticatedUser = $request->user();
 
         $logs = DB::table('Entrylog')
                     ->select(DB::raw('*'))
@@ -224,18 +246,22 @@ class AdminController extends Controller
 
         // return $logs;
 
-        return view('admin.entrylogs', ['logs' => $logs]);
+        return view('admin.entrylogs', ['logs' => $logs, 'authenticatedUser' => $authenticatedUser]);
     }
 
-    public function settings() {
-        return view('admin.settings');
+    public function settings(Request $request) {
+        $authenticatedUser = $request->user();
+        return view('admin.settings', ['authenticatedUser' => $authenticatedUser]);
     }
 
-    public function showNewTransactionPage() {
+    public function showNewTransactionPage(Request $request) {
+        
+        $authenticatedUser = $request->user();
 
         $latest_transaction = DB::table('transactiondetail')
                                         ->select(DB::raw('*'))
                                         ->leftJoin('employee', 'employee.employee_id', 'transactiondetail.employee_id')
+                                        ->leftJoin('admin', 'admin.admin_id', 'transactiondetail.admin_id')
                                         ->orderByDesc('transaction_id')
                                         ->limit(1)
                                         ->get()
@@ -252,13 +278,16 @@ class AdminController extends Controller
                             ->toArray();
         
         return view('admin.addTransaction', [
+                        'authenticatedUser' => $authenticatedUser,
                         'orders' => $current_orders, 
                         'latest_transaction_id' => $latest_transaction_id,
                         'transaction' => $latest_transaction[0]
         ]);
     }
 
-    public function pdfView() {
+    public function pdfView(Request $request) {
+
+        $authenticatedUser = $request->user();
 
         $transactions = DB::table('transactiondetail')->select('*')
         ->join('orders', 'orders.transaction_id', 'transactiondetail.transaction_id')
@@ -268,7 +297,7 @@ class AdminController extends Controller
         ->whereRaw('orders.product_id IS NOT NULL OR orders.service_id IS NOT NULL')
         ->get()->toArray();
 
-        return view('admin.pdfView', ['transactions' => $transactions]);
+        return view('admin.pdfView', ['transactions' => $transactions, 'authenticatedUser' => $authenticatedUser]);
     }
 
     /* POST REQUEST */
@@ -279,8 +308,8 @@ class AdminController extends Controller
             $employee = new Employee([
                 'employee_name' => request('employee_name'),
                 'employee_age' => request('employee_age'),
-                'employee_email' => request('employee_email'),
-                'employee_password' => Hash::make('password'),
+                'email' => request('email'),
+                'password' => Hash::make('password'),
                 'employee_type' => 'Clerk',
                 'employee_status' => 'working',
                 'date_hired' => $curDate->toDateString()
@@ -299,8 +328,8 @@ class AdminController extends Controller
             DB::table('customer')->insert([
                 'customer_name' => request('customer_name'),
                 'customer_age' => request('customer_age'),
-                'customer_email' => request('customer_email'),
-                'customer_password' => Hash::make('password'),
+                'email' => request('email'),
+                'password' => Hash::make('password'),
                 'customer_status' => 'No Subscription',
                 'membership_expires_in' => 0,
                 ]
@@ -506,7 +535,9 @@ class AdminController extends Controller
     }
 
     // ANG EMPLOYEE_ID DIRI KAY ILISANAN
-    public function addNewTransaction() {
+    public function addNewTransaction(Request $request) {
+
+        $authenticatedUser = $request->user();
 
         $latest_transaction = DB::table('transactiondetail')
                                 ->select(DB::raw('*'))
@@ -521,7 +552,7 @@ class AdminController extends Controller
         // ANG EMPLOYEE ILISANAN
         if ($status == 'completed') {
             $transactiondetail = new TransactionDetail([
-                    'employee_id' => 1,
+                    'admin_id' => $authenticatedUser->admin_id,
                     'transaction_date' => Carbon::now(),
                     'status' => 'pending'
             ]);
@@ -793,6 +824,9 @@ class AdminController extends Controller
                 DB::table('class')->where('class_id', '=', request('class_id'))
                     ->update(['class_image' => $class_image]);
                 $msg = 'Updated Successfully!';
+
+                DB::table('services')->where('service_class_id', '=', request('class_id'))
+                    ->update(['service_image' => $class_image]);
             }
         }
              
@@ -800,6 +834,9 @@ class AdminController extends Controller
             $class_name = request('class_name');
             DB::table('class')->where('class_id', '=', request('class_id'))
                 ->update(['class_name' => $class_name]);
+                
+            DB::table('services')->where('service_class_id', '=', request('class_id'))
+                ->update(['service_name' => $class_name]);
             $msg = 'Updated Successfully!';
         }
         
@@ -815,6 +852,9 @@ class AdminController extends Controller
             DB::table('class')->where('class_id', '=', request('class_id'))
                 ->update(['class_price' => $class_price]);
             $msg = 'Updated Successfully!';
+
+            DB::table('services')->where('service_class_id', '=', request('class_id'))
+                ->update(['service_price' => $class_price]);
         }
 
         if (!empty(request('class_schedule'))) {
@@ -845,19 +885,27 @@ class AdminController extends Controller
             if ($num[0]->class_cur_number >= $class_max_number) {
                 DB::table('class')->where('class_id', '=', request('class_id'))
                 ->update(['class_max_number' => $class_max_number, 'class_status' => 'full']);
+
+                DB::table('services')->where('service_class_id', '=', request('class_id'))
+                ->update(['service_status' => 'full']);
             } else {
                 DB::table('class')->where('class_id', '=', request('class_id'))
                     ->update(['class_max_number' => $class_max_number, 'class_status' => 'receiving']);
+
+                DB::table('services')->where('service_class_id', '=', request('class_id'))
+                    ->update(['service_status' => 'available']);
             }
             
-            $msg = 'Updated Successfully!';
         }
-
+        $msg = 'Updated Successfully!';
+        
 
         return redirect(route('admin.classes'))->with('msg', $msg);
     }
 
     public function updateProduct() {
+        
+        return request('product_description');
         if (!empty(request('product_image'))) {
             $postData = request()->only('product_image');
             $file = $postData['product_image'];
@@ -870,10 +918,11 @@ class AdminController extends Controller
             $validator = Validator::make($fileArray, $rules);
     
             if ($validator->fails()) {
-                return redirect(route('admin.classes'))->with('msg', 'Cannot Perform Action!');
+                return "failed";
+                // return redirect(route('admin.shop'))->with('msg', 'Cannot Perform Action!');
             } else {
                 $product_image = request()->file('product_image')->store('uploads');
-                DB::table('product')->where('product_id', '=', request('class_id'))
+                DB::table('product')->where('product_id', '=', request('product_id'))
                     ->update(['product_image' => $product_image]);
                 $msg = 'Updated Successfully!';
             }
@@ -897,19 +946,11 @@ class AdminController extends Controller
             $product_stock = request('product_stock');
 
             if ($product_stock == 0) {
-                try {
                     DB::table('product')->where('product_id', '=', request('product_id'))
-                    ->update(['product_stock' => $product_stock, 'product_status' => 'unavailable']);
-                } catch (\Illuminate\Database\QueryException $ex) {
-                    return redirect(route('admin.classes'))->with('msg', 'Cannot Perform Action!');
-                }
+                    ->update(['product_stock' => 0, 'product_status' => 'unavailable']);
             } else {
-               try {
                     DB::table('product')->where('product_id', '=', request('product_id'))
                     ->update(['product_stock' => $product_stock, 'product_status' => 'available']);
-               } catch (\Illuminate\Database\QueryException $ex) {
-                    return redirect(route('admin.classes'))->with('msg', 'Cannot Perform Action!');
-               }
             }
             $msg = 'Updated Successfully!';
         }
@@ -918,11 +959,70 @@ class AdminController extends Controller
             $product_description = request('product_description');
             DB::table('product')->where('product_id', '=', request('product_id'))
                 ->update(['product_description' => $product_description]);
-            }
+        }
             
         $msg = 'Updated Successfully!';
         return redirect(route('admin.shop'))->with('msg', $msg);
     }
+
+    public function changeDetails(Request $request) {
+
+        $authenticatedUser = $request->user();
+        
+        if (empty(request('password')) && empty(request('confirm_password')) && empty(request('email'))) {
+            return redirect()->back()->with('msg', 'Cannot Perform Action!');
+        }
+
+        // if empty ang email, then password gi ilisan
+        if (empty(request('email'))) {
+
+            if (request('password') != request('confirm_password')) {
+                return redirect()->back()->with([
+                    'error' => 'Password does not match.',
+                    'email' => $request->email, 
+                ]);
+            } else {
+
+                DB::table('admin')->where('admin_id', '=', $authenticatedUser->admin_id)
+                    ->update(['password' => Hash::make(request('password'))]);
+                    return redirect(route('admin.settings'))->with('msg', 'Updated Successfully!');
+            }
+        }
+
+        // if dili empty ang email, then email gi input
+        // pwede sad ga ilis ug password or pwede sad wala
+        if (!empty(request('email'))) {
+
+            // if ang email kay di unique, then return
+            if (DB::table('admin')->select('email')->where('email', '=', $request->email)->get()->toArray()) {
+                return redirect()->back()->with(['non-unique' => 'Email is already taken.']);
+            } else {
+
+                // if walay password pero naay email, then update email lang
+                if (empty(request('password')) && empty(request('confirm_password'))) {
+                    DB::table('admin')->where('admin_id', '=', $authenticatedUser->admin_id)
+                        ->update(['email' => request('email')]);
+                        return redirect(route('admin.settings'))->with('msg', 'Updated Successfully!');
+                } else {
+                    // unique email, then naay password
+            
+                    // if di match ang password, then return
+                    if (request('password') != request('confirm_password')) {
+                        return redirect()->back()->with([
+                            'error' => 'Password does not match.',
+                            'email' => $request->email, 
+                        ]);
+                    } else {
+                        // match ang password
+                        DB::table('admin')->where('admin_id', '=', $authenticatedUser->admin_id)
+                        ->update(['email' => request('email'), 'password' => Hash::make(request('password'))]);
+                        return redirect(route('admin.settings'))->with('msg', 'Updated Successfully!');
+                    }
+                }
+            }
+        }
+    }
+
 
     /* DELETE REQUEST */
     public function removeEmployee() {
@@ -933,7 +1033,7 @@ class AdminController extends Controller
         // update an employee (cannot actually delete, otherwise 
         // those tables that references this employee will throw an error)
         $employee->employee_status = 'fired';
-        $employee->employee_email = '';
+        $employee->email = '';
         $employee->save();
         
         return redirect(route('admin.employees'))->with('msg', 'Removed Successfully!');

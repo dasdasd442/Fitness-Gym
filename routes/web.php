@@ -3,10 +3,15 @@
 //oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\MainController;
+
+use App\Http\Controllers\AdminLogInController;
+use App\Http\Controllers\EmployeeLogInController;
+use App\Http\Controllers\CustomerLogInController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,9 +26,17 @@ use App\Http\Controllers\MainController;
 
 /* ADMIN ROUTES */
 /* GET ROUTES */
+Route::get('/sample', function() {
+    return view('home');
+});
 
 Route::prefix('admin')->group(function () {
-    Route::get('/', function() { return redirect(route('admin.index')); });
+    Route::get('/login', [AdminLogInController::class, 'showLogInForm'])->name('admin.login');
+    Route::post('/login', [AdminLogInController::class, 'login'])->name('admin.login-submit');
+    Route::get('/logout', [AdminLogInController::class, 'logout'])->name('admin.logout');
+
+
+    
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.index');
     Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
     Route::get('/classes-details', [AdminController::class, 'classesDetails'])->name('admin.classes');
@@ -32,8 +45,13 @@ Route::prefix('admin')->group(function () {
     Route::get('/entrylog-details', [AdminController::class, 'entrylogDetails'])->name('admin.entrylogs');
     Route::get('/transaction-details', [AdminController::class, 'transactionDetails'])->name('admin.transactions');
     Route::get('/shop-details', [AdminController::class, 'shopDetails'])->name('admin.shop');
-    Route::get('/login', [AdminController::class, 'login'])->name('admin.login');
+
+
+
     // Route::get('/register', [AdminController::class, 'register'])->name('admin.register');
+
+
+
     Route::get('/new-transaction-page', [AdminController::class, 'showNewTransactionPage'])->name('add-new-transaction-page');
     Route::get('/pdf-view-thequickbrownfoxjumpsoverthelazydogs', [AdminController::class, 'pdfView'])->name('pdf-view');
     
@@ -59,18 +77,21 @@ Route::prefix('admin')->group(function () {
     Route::post('/finish-transaction', [AdminController::class, 'finishTransaction'])->name('finish-transaction');
     Route::post('/generate-report', [AdminController::class, 'generateReport'])->name('generate-report');
     Route::post('/renew-membership', [AdminController::class, 'renewMembership'])->name('renew-membership');
+    Route::post('/change-details', [AdminController::class, 'changeDetails'])->name('change-details');
+
+    Route::get('/', function() { return redirect(route('admin.index')); });
 });
 
 
 
-Route::prefix('employee')->group(function () {
-    Route::get('/', function() { return redirect(route('employee.index')); });
+Route::prefix('employee')->group(function () {    
+    Route::get('/login', [EmployeeLogInController::class, 'showLogInForm'])->name('employee.login');
+    Route::post('/login', [EmployeeLogInController::class, 'login'])->name('employee.login-submit');
+
+    Route::get('/logout', [EmployeeLogInController::class, 'logout'])->name('employee.logout');
     Route::get('/dashboard', [EmployeeController::class, 'index'])->name('employee.index');
     Route::get('/new-transaction-page', [EmployeeController::class, 'newTransaction'])->name('employee.transaction');
 
-    Route::get('/login', function () {
-        return view('employee.login');
-    })->name('admin.login');
 
 
     Route::post('/e-add-customer', [EmployeeController::class, 'addCustomer'])->name('e-add-customer');
@@ -84,6 +105,9 @@ Route::prefix('employee')->group(function () {
     Route::post('/e-add-transaction', [EmployeeController::class, 'addNewTransaction'])->name('e-add-transaction');
     Route::post('/e-add-order', [EmployeeController::class, 'addNewOrder'])->name('e-add-order');
     Route::post('/e-finish-transaction', [EmployeeController::class, 'finishTransaction'])->name('e-finish-transaction');
+
+    Route::post('/e-update-email', [EmployeeController::class, 'updateEmail'])->name('e-update-email');
+    Route::post('/e-update-password', [EmployeeController::class, 'updatePassword'])->name('e-update-password');
     
     
     Route::delete('/e-remove-class-member', [EmployeeController::class, 'removeClassMember'])->name('e-remove-class-member');
@@ -92,6 +116,7 @@ Route::prefix('employee')->group(function () {
     Route::delete('/e-remove-order', [EmployeeController::class, 'removeOrder'])->name('e-remove-order');
     Route::delete('/e-remove-transaction', [EmployeeController::class, 'removeTransaction'])->name('e-remove-transaction');
     
+    Route::get('/', function() { return redirect(route('employee.index')); });
 });
 
 
@@ -101,6 +126,11 @@ Route::prefix('customer')->group(function () {
     Route::get('/dashboard', [CustomerController::class, 'index'])->name('customer.index');
     Route::get('/available-classes', [CustomerController::class, 'classes'])->name('customer.classes');
     Route::get('/shop', [CustomerController::class, 'shop'])->name('customer.shop');
+
+    Route::post('/customer-update-email', [CustomerController::class, 'updateEmail'])->name('c-update-email');
+    Route::post('/customer-update-password', [CustomerController::class, 'updatePassword'])->name('c-update-password');
+
+    Route::get('/logout', [MainController::class, 'logout'])->name('customer.logout');
 });
 
 
@@ -112,3 +142,9 @@ Route::get('/shop', [MainController::class, 'mainpageShop'])->name('mainpage-sho
 Route::get('/about-california', [MainController::class, 'mainpageAbout'])->name('mainpage-about');
 Route::get('/sign-up', [MainController::class, 'mainpageSignup'])->name('mainpage-sign-up');
 
+Route::post('/customer-login', [MainController::class, 'login'])->name('customer-login');
+Route::post('/signup-submit', [MainController::class, 'signupSubmit'])->name('mainpage-signup-submit');
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

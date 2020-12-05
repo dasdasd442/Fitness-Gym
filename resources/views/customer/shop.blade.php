@@ -27,7 +27,7 @@
                 <li><a href="{{ route('customer.classes') }}">Classes</a></li>
                 <li><a href="{{ route('customer.shop') }}" class="active">Shop</a></li>
                 <li><a href="{{ route('customer.index') }}">Dashboard</a></li>
-                <li><a href="#">Logout</a></li>
+                <li><a href="{{ route('customer.logout') }}">Logout</a></li>
             </ul>
         </nav>
         <a onclick="showSubmenu()" class="burger"><i class="fa fa-bars fa-2x"></i></a>
@@ -36,7 +36,7 @@
                 <li><a href="{{ route('customer.classes') }}">Classes</a></li>
                 <li><a href="{{ route('customer.shop') }}">Shop</a></li>
                 <li><a href="{{ route('customer.index') }}">Dashboard</a></li>
-                <li><a href="#">Logout</a></li>
+                <li><a href="{{ route('customer.logout') }}">Logout</a></li>
             </ul>
         </div>
     </div>
@@ -69,7 +69,7 @@
   
       @foreach ($products as $product)
         <div id="{{ $product->product_id }}" class="p-md-3 separate cursor" data-toggle="modal" data-target="#product{{ $product->product_id }}">
-          <img src="images/alfamo.jpg" alt="alfamo">
+          <img src="../{{ $product->product_image }}" alt="alfamo">
           <h2>
             {{ $product->product_name }}
           </h2>
@@ -143,7 +143,7 @@
                   <li><a href="{{ route('customer.shop') }}">Shop</a></li>
                   <li><a href="{{ route('customer.classes') }}">Classes</a></li>
                   <li><a href="{{ route('customer.index') }}">Dashboard</a></li>
-                  <li><a href="#">Logout</a></li>
+                  <li><a href="{{ route('customer.logout') }}">Logout</a></li>
               </ul>
           </nav>
           <div>

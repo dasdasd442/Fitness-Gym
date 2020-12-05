@@ -255,7 +255,7 @@
                               <tr class="member-name">
                                 <td>{{ $detail->customer_id }}</td>
                                 <td>{{ $detail->customer_name }}</td>
-                                <td>{{ $detail->customer_email }}</td>
+                                <td>{{ $detail->email }}</td>
                                 <form action="{{ route('remove-class-member') }}" method="POST">
                                   @csrf
                                   @method('DELETE')

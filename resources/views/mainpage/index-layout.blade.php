@@ -12,15 +12,18 @@
             </div>
             <div class="showcase-form card">
                 <h2>Welcome, Gymers!</h2>
-                <form>
+                <form action="{{ route('customer-login') }}" method="POST">
+                    @csrf
                     <div class="form-control">
-                        <input type="text" name="user_id" placeholder="User ID" required>
+                        <input type="email" name="email" placeholder="User Email" required>
                     </div>
                     <div class="form-control">
-                        <input type="password" name="user_password" placeholder="Password" required>
+                        <input type="password" name="password" placeholder="Password" required>
                     </div>
                     <input type="submit" value="LOGIN" class="btn btn-primary fullbtn">
                 </form>
+
+                
                 <div class="dont-have-an-account">
                     Don't have an account?
                     <a href="{{ route('mainpage-sign-up') }}">Sign Up</a>

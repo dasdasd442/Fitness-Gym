@@ -41,7 +41,7 @@
                       <tr>
                         <td data-toggle="modal" data-target="#customer{{ $customer->customer_id}}" title="Click to add membership" style="cursor: pointer;">{{$customer->customer_id}}</td>
                         <td data-toggle="modal" data-target="#customer{{ $customer->customer_id}}" title="Click to add membership" style="cursor: pointer;">{{$customer->customer_name}}</td>
-                        <td data-toggle="modal" data-target="#customer{{ $customer->customer_id}}" title="Click to add membership" style="cursor: pointer;">{{$customer->customer_email}}</td>
+                        <td data-toggle="modal" data-target="#customer{{ $customer->customer_id}}" title="Click to add membership" style="cursor: pointer;">{{$customer->email}}</td>
 
                         @if ($customer->customer_status == 'Expired' || $customer->customer_status == 'No Subscription')
                           <td data-toggle="modal" data-target="#customer{{ $customer->customer_id}}" title="Click to add membership" style="cursor: pointer;" class="text-danger">{{$customer->customer_status}}</td>
@@ -89,7 +89,7 @@
                               </div>
                               <div class="form-group">
                                   <label for="">Customer Email</label>
-                                  <input type="email" class="form-control" id="exampleInputText1" placeholder="Enter Customer Email" name="customer_email" required/>
+                                  <input type="email" class="form-control" id="exampleInputText1" placeholder="Enter Customer Email" name="email" required/>
                               </div>
                               <button type="submit" class="btn btn-primary">Add Customer</button>
                           </form>

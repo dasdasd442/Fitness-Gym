@@ -13,6 +13,7 @@ class TransactionDetail extends Model
     protected $fillable = [
             'employee_id',
             'transaction_date',
-            'status'
+            'status',
+            'admin_id',
     ];
 }

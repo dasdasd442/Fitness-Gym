@@ -90,14 +90,14 @@
             <nav>
                 <ul>
                     <li><a href="{{ route('employee.index') }}" class="active">Dashboard</a></li>
-                    <li><a href="../index.html">Logout</a></li>
+                    <li><a href="{{ route('employee.logout') }}">Logout</a></li>
                 </ul>
             </nav>
             <a onclick="showSubmenu()" class="burger"><i class="fa fa-bars fa-2x"></i></a>
             <div class="submenu">
                 <ul>
                     <li><a href="{{ route('employee.index') }}">Dashboard</a></li>
-                    <li><a href="../index.html">Logout</a></li>
+                    <li><a href="{{ route('employee.logout') }}">Logout</a></li>
                 </ul>
             </div>
         </div>
@@ -108,7 +108,7 @@
         <div class="container grid">
             <div class="slideInFromLeft">
                 <h1 class="xl">Welcome to Dashboard</h1>
-                <p class="lead">California Fitness Gym | Employee</p>
+                <p class="lead">California Fitness Gym | {{ $authenticatedUser->employee_name }} | {{ $authenticatedUser->employee_id }}</p>
             </div>
             <i class="fas fa-folder-open slideInFromRight"></i>
         </div>
@@ -161,7 +161,7 @@
                 <h2>Links</h2>
                 <ul>
                     <li><a href="{{ route('employee.index') }}">Dashboard</a></li>
-                    <li><a href="#">Logout</a></li>
+                    <li><a href="{{ route('employee.logout') }}">Logout</a></li>
                 </ul>
             </nav>
             <div>

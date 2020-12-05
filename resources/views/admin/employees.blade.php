@@ -43,7 +43,7 @@
                           <tr class="row-product">
                             <td>{{ $employee->employee_id }}</td>
                             <td>{{ $employee->employee_name }}</td>
-                            <td>{{ $employee->employee_email }}</td>
+                            <td>{{ $employee->email }}</td>
                             <td>{{ $employee->date_hired }}</td>
                           <td class="text-center" data-toggle="modal" data-target="#modal{{$employee->employee_id}}"><i class="fas fa-trash fa-2x text-danger icon-animation" title="remove employee"></i></td>
                           </tr>
@@ -86,7 +86,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="">Employee Email</label>
-                                    <input type="email" class="form-control" id="exampleInputText1" placeholder="Enter Employee Email" name="employee_email" required>
+                                    <input type="email" class="form-control" id="exampleInputText1" placeholder="Enter Employee Email" name="email" required>
                                 </div>
                                 <button type="submit" class="btn btn-primary">Add Employee</button>
                             </form>

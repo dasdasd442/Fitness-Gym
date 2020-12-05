@@ -10,18 +10,32 @@
         </div>
         <div class="showcase-form sign-up card">
             <h2>Welcome, Future Gymer!</h2>
-            <form>
+            <form action="{{ route('mainpage-signup-submit') }}" method="POST">
+                @csrf
                 <div class="form-control">
-                    <input type="text" name="user_name" placeholder="Full Name" required>
+                    @if (session('error') == 'Email is already taken.')
+                        <input type="text" name="customer_name" placeholder="Full Name" required value="{{ session('customer_name') }}">
+                    @else
+                        <input type="text" name="customer_name" placeholder="Full Name" required>
+                    @endif
                 </div>
                 <div class="form-control">
-                    <input type="text" name="user_age" placeholder="Age" required>
+                    @if (session('error') == 'Email is already taken.')
+                        <input type="text" name="customer_age" placeholder="Age" required oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" value="{{ session('customer_age') }}">
+                    @else
+                        <input type="text" name="customer_age" placeholder="Age" required oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                    @endif
                 </div>
                 <div class="form-control">
-                    <input type="email" name="user_email" placeholder="Email" required>
+                   @if (session('error') == 'Email is already taken.')
+                    <label style="margin-left: 5px; color: #d9534f;">Email is already Taken.</label>
+                    <input type="email" name="email" placeholder="Email" required style="border: 2px solid #d9534f;">
+                   @else
+                   <input type="email" name="email" placeholder="Email" required>
+                   @endif
                 </div>
                 <div class="form-control">
-                    <input type="password" name="user_password" placeholder="Password" required>
+                    <input type="password" name="password" placeholder="Password" required>
                 </div>
                 <input type="submit" value="Create Account" class="btn btn-primary fullbtn">
             </form>

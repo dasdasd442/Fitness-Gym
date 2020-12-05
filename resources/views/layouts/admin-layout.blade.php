@@ -183,7 +183,7 @@
       <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">California Gym Website:</h6>
-          <a class="collapse-item" href="../index.html">Your Website</a>
+          <a class="collapse-item" href="{{ route('mainpage-index') }}">Your Website</a>
           <div class="collapse-divider"></div>
         </div>
       </div>
@@ -223,7 +223,7 @@
           <!-- Nav Item - User Information -->
           <li class="nav-item dropdown no-arrow">
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="mr-2 d-none d-lg-inline text-gray-600 small">Hansel Crackers</span>
+              <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ $authenticatedUser->name }}</span>
               <img class="img-profile rounded-circle" src="../images/logo.png">
             </a>
             <!-- Dropdown - User Information -->
@@ -233,7 +233,7 @@
                 Settings
               </a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+              <a class="dropdown-item" style="cursor: pointer;" data-toggle="modal" data-target="#logoutModal">
                 <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                 Logout
               </a>
@@ -294,7 +294,7 @@
   <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
   <div class="modal-footer">
     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-    <a class="btn btn-primary" href="login.html">Logout</a>
+    <a class="btn btn-primary" href="{{ route('admin.logout') }}">Logout</a>
   </div>
 </div>
 </div>

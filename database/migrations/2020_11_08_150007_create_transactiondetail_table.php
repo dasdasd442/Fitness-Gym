@@ -16,7 +16,8 @@ class CreateTransactiondetailTable extends Migration
     {
         Schema::create('transactiondetail', function (Blueprint $table) {
             $table->bigIncrements('transaction_id');
-            $table->bigInteger('employee_id');
+            $table->bigInteger('employee_id')->nullable();
+            $table->bigInteger('admin_id')->nullable();
             $table->timestamp('transaction_date')->useCurrent();
             $table->integer('order_count')->default(0);
             $table->float('total_payment')->default(0);

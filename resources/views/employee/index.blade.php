@@ -160,19 +160,11 @@
     <div id="settings" class="card m-5-bottom">
         <h2><i class="fas fa-user-cog icons"></i>Your Personal Settings</h2>
             <div class="form-control">
-                <input type="text" name="user_name" placeholder="Full Name: Employee Number 1" required disabled>
-                <button class="btn btn-primary half-btn" data-toggle="modal" data-target="#myModal1">Update Name</button>
-            </div>
-            <div class="form-control">
-                <input type="text" name="user_age" placeholder="Age: 20" required disabled>
-                <button class="btn btn-primary half-btn" data-toggle="modal" data-target="#myModal2">Update Age</button>
-            </div>
-            <div class="form-control">
-                <input type="email" name="user_email" placeholder="Email: employee@gmail.com" required disabled>
+                <input type="email" name="user_email" placeholder="Email: {{ $authenticatedUser->email }}" required disabled>
                 <button class="btn btn-primary half-btn" data-toggle="modal" data-target="#myModal3">Update Email</button>
             </div>
             <div class="form-control">
-                <input type="password" name="user_password" placeholder="Password: ******" required disabled>
+                <input type="password" name="user_password" placeholder="Password: {{ $authenticatedUser->password }}" required disabled>
                 <button class="btn btn-primary half-btn" data-toggle="modal" data-target="#myModal4">Update Password</button>
             </div>
     </div>
@@ -198,7 +190,7 @@
                                 <h3>Customer ID:<span class="text-support m-2">{{ $customer->customer_id }}</span></h3>
                                 <h3>Customer Name:<span class="text-support m-2">{{ $customer->customer_name }}</span></h3>
                                 <h3>Age: <span class="text-support m-2">{{ $customer->customer_age }}</span></h3>
-                                <h3>Email: <span class="text-support m-2">{{ $customer->customer_email }}</span></h3>
+                                <h3>Email: <span class="text-support m-2">{{ $customer->email }}</span></h3>
                                 <h3>Membership Start Date: <span class="text-support m-2">{{ $customer->membership_start_date }}</span></h3>
                                 <h3>Membership End Date: <span class="text-support m-2">{{ $customer->membership_end_date }}</span></h3>
                                 <h3>Membership Status: 
@@ -332,7 +324,7 @@
                                                 <tr class="row-classes1">
                                                     <td>{{ $detail->customer_id }}</td>
                                                     <td>{{ $detail->customer_name }}</td>
-                                                    <td>{{ $detail->customer_email }}</td>
+                                                    <td>{{ $detail->email }}</td>
                                                     <form action="{{ route('e-remove-class-member') }}" method="POST">
                                                         @csrf
                                                         @method('DELETE')
@@ -518,60 +510,6 @@
 
     
     <!--------------------- Settings UPDATE MODAL --------------------->
-    <!-- Full name -->
-    <div id="myModal1" class="modal fade" role="dialog">
-        <div class="modal-dialog modal-lg">
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-            <h2 class="modal-title"><i class="fas fa-plus icons md"></i>Update</h2>
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-            <div id="modRow" class="d-flex justify-content-center row">
-                <div class="col">
-                    <form>
-                        <div class="form-control">
-                            <input class="full" type="text" name="user_name" placeholder="Enter New Full Name" required>
-                        </div>
-                        <input type="submit" value="Update Name" class="btn btn-primary fullbtn" />
-                    </form>
-                </div>
-            </div>
-            </div>
-            <div class="modal-footer">
-            </div>
-        </div>
-        </div>
-    </div>
-
-    <!-- Age -->
-    <div id="myModal2" class="modal fade" role="dialog">
-        <div class="modal-dialog modal-lg">
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-            <h2 class="modal-title"><i class="fas fa-plus icons md"></i>Update</h2>
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-            <div id="modRow" class="d-flex justify-content-center row">
-                <div class="col">
-                    <form>
-                        <div class="form-control">
-                            <input class="full" type="text" name="user_age" placeholder="Enter New Age" required>
-                        </div>
-                        <input type="submit" value="Update Age" class="btn btn-primary fullbtn" />
-                    </form>
-                </div>
-            </div>
-            </div>
-            <div class="modal-footer">
-            </div>
-        </div>
-        </div>
-    </div>
-
     <!-- Email -->
     <div id="myModal3" class="modal fade" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -584,9 +522,10 @@
             <div class="modal-body">
             <div id="modRow" class="d-flex justify-content-center row">
                 <div class="col">
-                    <form>
+                    <form action="{{ route('e-update-email') }}" method="POST">
+                        @csrf
                         <div class="form-control">
-                            <input class="full" type="email" name="user_email" placeholder="Enter New Email" required>
+                            <input class="full" type="email" name="email" placeholder="Enter New Email" required>
                         </div>
                         <input type="submit" value="Update Email" class="btn btn-primary fullbtn" />
                     </form>
@@ -611,9 +550,13 @@
             <div class="modal-body">
             <div id="modRow" class="d-flex justify-content-center row">
                 <div class="col">
-                    <form>
+                    <form action="{{ route('e-update-password') }}" method="POST">
+                        @csrf
                         <div class="form-control">
-                            <input class="full" type="password" name="user_password" placeholder="Enter New Password" required>
+                            <input class="full" type="password" name="password" placeholder="Enter New Password" required>
+                        </div>
+                        <div class="form-control">
+                            <input class="full" type="password" name="confirm_password" placeholder="Re-enter Password" required>
                         </div>
                         <input type="submit" value="Update Password" class="btn btn-primary fullbtn" />
                     </form>
@@ -661,7 +604,7 @@
                                 <input class="full" type="text" name="customer_age" placeholder="Enter Customer Age" required oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                             </div>
                             <div class="form-control">
-                                <input class="full" type="email" name="customer_email" placeholder="Enter Customer Email" required>
+                                <input class="full" type="email" name="email" placeholder="Enter Customer Email" required>
                             </div>
                             <input type="submit" value="Add Customer" class="btn btn-primary fullbtn" />
                         </form>

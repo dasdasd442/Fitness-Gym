@@ -22,8 +22,17 @@ use Illuminate\Support\Facades\Hash;
 
 class EmployeeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:employee');
+    }
+    
+    
+    
     /* GET REQUEST */
-    public function index() {
+    public function index(Request $request) {
+
+        $authenticatedUser = $request->user();
 
         $customers = $this->customerDetails();
         $logs = $this->entrylogDetails();
@@ -35,7 +44,8 @@ class EmployeeController extends Controller
                     'services' => $shopDetails[0],
                     'products' => $shopDetails[1],
                     'classes' => $classesDetails[0],
-                    'customerclass' => $classesDetails[1]
+                    'customerclass' => $classesDetails[1],
+                    'authenticatedUser' => $authenticatedUser
         ]);
     }
 
@@ -109,7 +119,9 @@ class EmployeeController extends Controller
         return $logs;
     }
 
-    public function newTransaction() {
+    public function newTransaction(Request $request) {
+        $authenticatedUser = $request->user();
+
         $dailyEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
                                             ->whereRaw('DATE(`transaction_date`) = DATE(CURDATE())')
                                             ->get()->toArray();
@@ -121,6 +133,7 @@ class EmployeeController extends Controller
         $latest_transaction = DB::table('transactiondetail')
                             ->select(DB::raw('*'))
                             ->leftJoin('employee', 'employee.employee_id', 'transactiondetail.employee_id')
+                            ->leftJoin('admin', 'admin.admin_id', 'transactiondetail.admin_id')
                             ->orderByDesc('transaction_id')
                             ->limit(1)
                             ->get()
@@ -144,7 +157,8 @@ class EmployeeController extends Controller
                 'latest_transaction_id' => $latest_transaction_id,
                 'orders' => $current_orders,
                 'transaction' => $latest_transaction[0],
-                'displayMe' => 'hide'
+                'displayMe' => 'hide',
+                'authenticatedUser' => $authenticatedUser
             ]);
         } else {
             return view('employee.new-transaction', [
@@ -153,7 +167,8 @@ class EmployeeController extends Controller
                 'latest_transaction_id' => $latest_transaction_id,
                 'orders' => $current_orders,
                 'transaction' => $latest_transaction[0],
-                'displayMe' => 'show'
+                'displayMe' => 'show',
+                'authenticatedUser' => $authenticatedUser
             ])->with('showIt', 'show');
         }
     }
@@ -165,8 +180,8 @@ class EmployeeController extends Controller
             DB::table('customer')->insert([
                 'customer_name' => request('customer_name'),
                 'customer_age' => request('customer_age'),
-                'customer_email' => request('customer_email'),
-                'customer_password' => Hash::make('password'),
+                'email' => request('email'),
+                'password' => Hash::make('password'),
                 'customer_status' => 'No Subscription',
                 'membership_expires_in' => 0,
                 ]
@@ -362,7 +377,9 @@ class EmployeeController extends Controller
     }
 
     // ANG EMPLOYEE_ID DIRI KAY ILISANAN
-    public function addNewTransaction() {
+    public function addNewTransaction(Request $request) {
+
+        $authenticatedUser = $request->user();
 
         $latest_transaction = DB::table('transactiondetail')
                                 ->select(DB::raw('*'))
@@ -377,7 +394,7 @@ class EmployeeController extends Controller
         // ANG EMPLOYEE ILISANAN
         if ($status == 'completed') {
             $transactiondetail = new TransactionDetail([
-                    'employee_id' => 1,
+                    'employee_id' => $authenticatedUser->employee_id,
                     'transaction_date' => Carbon::now(),
                     'status' => 'pending'
             ]);
@@ -647,6 +664,9 @@ class EmployeeController extends Controller
                 DB::table('class')->where('class_id', '=', request('class_id'))
                     ->update(['class_image' => $class_image]);
                 $msg = 'Updated Successfully!';
+
+                DB::table('services')->where('service_class_id', '=', request('class_id'))
+                    ->update(['service_image' => $class_image]);
             }
         }
              
@@ -654,6 +674,9 @@ class EmployeeController extends Controller
             $class_name = request('class_name');
             DB::table('class')->where('class_id', '=', request('class_id'))
                 ->update(['class_name' => $class_name]);
+                
+            DB::table('services')->where('service_class_id', '=', request('class_id'))
+                ->update(['service_name' => $class_name]);
             $msg = 'Updated Successfully!';
         }
         
@@ -669,6 +692,9 @@ class EmployeeController extends Controller
             DB::table('class')->where('class_id', '=', request('class_id'))
                 ->update(['class_price' => $class_price]);
             $msg = 'Updated Successfully!';
+
+            DB::table('services')->where('service_class_id', '=', request('class_id'))
+                ->update(['service_price' => $class_price]);
         }
 
         if (!empty(request('class_schedule'))) {
@@ -699,14 +725,22 @@ class EmployeeController extends Controller
             if ($num[0]->class_cur_number >= $class_max_number) {
                 DB::table('class')->where('class_id', '=', request('class_id'))
                 ->update(['class_max_number' => $class_max_number, 'class_status' => 'full']);
+
+                DB::table('services')->where('service_class_id', '=', request('class_id'))
+                ->update(['service_status' => 'full']);
             } else {
                 DB::table('class')->where('class_id', '=', request('class_id'))
                     ->update(['class_max_number' => $class_max_number, 'class_status' => 'receiving']);
+
+                DB::table('services')->where('service_class_id', '=', request('class_id'))
+                    ->update(['service_status' => 'available']);
             }
             
             $msg = 'Updated Successfully!';
+        } else {
+           $msg = "Cannot Perform Action!";
         }
-
+        
 
         return redirect(route('employee.index').'#california-classes')->with('msg', $msg);
     }
@@ -727,7 +761,7 @@ class EmployeeController extends Controller
                 return redirect(route('employee.index').'#california-shop')->with('msg', 'Cannot Perform Action!');
             } else {
                 $product_image = request()->file('product_image')->store('uploads');
-                DB::table('product')->where('product_id', '=', request('class_id'))
+                DB::table('product')->where('product_id', '=', request('product_id'))
                     ->update(['product_image' => $product_image]);
                 $msg = 'Updated Successfully!';
             }
@@ -751,19 +785,11 @@ class EmployeeController extends Controller
             $product_stock = request('product_stock');
 
             if ($product_stock == 0) {
-                try {
                     DB::table('product')->where('product_id', '=', request('product_id'))
-                    ->update(['product_stock' => $product_stock, 'product_status' => 'unavailable']);
-                } catch (\Illuminate\Database\QueryException $ex) {
-                    return redirect(route('employee.index').'#california-shop')->with('msg', 'Cannot Perform Action!');
-                }
+                    ->update(['product_stock' => 0, 'product_status' => 'unavailable']);
             } else {
-               try {
                     DB::table('product')->where('product_id', '=', request('product_id'))
                     ->update(['product_stock' => $product_stock, 'product_status' => 'available']);
-               } catch (\Illuminate\Database\QueryException $ex) {
-                    return redirect(route('employee.index').'#california-shop')->with('msg', 'Cannot Perform Action!');
-               }
             }
             $msg = 'Updated Successfully!';
         }
@@ -776,6 +802,34 @@ class EmployeeController extends Controller
             
         $msg = 'Updated Successfully!';
         return redirect(route('employee.index').'#california-shop')->with('msg', $msg);
+    }
+
+    public function updateEmail(Request $request) {
+
+        $authenticatedUser = $request->user();
+
+        if (DB::table('employee')->select('email')->where('email', '=', request('email'))->get()->toArray()) {
+            return redirect(route('employee.index').'#settings')->with('msg', 'Cannot Perform Action!');
+        }
+
+        DB::table('employee')->where('employee_id', '=', $authenticatedUser->employee_id)
+            ->update(['email' => request('email')]);
+        
+            return redirect(route('employee.index').'#settings')->with('msg', 'Updated Successfully!');
+    }
+
+    public function updatePassword(Request $request) {
+
+        $authenticatedUser = $request->user();
+
+        if (request('password') != request('confirm_password')) {
+            return redirect(route('employee.index').'#settings')->with('msg', 'Cannot Perform Action!');
+        }
+
+        DB::table('employee')->where('employee_id', '=', $authenticatedUser->employee_id)
+            ->update(['password' => Hash::make(request('password'))]);
+        
+            return redirect(route('employee.index').'#settings')->with('msg', 'Updated Successfully!');
     }
 
     /*** DELETE REQUESTS */

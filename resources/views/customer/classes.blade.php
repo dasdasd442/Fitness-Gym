@@ -27,7 +27,7 @@
                     <li><a href="{{ route('customer.classes') }}" class="active">Classes</a></li>
                     <li><a href="{{ route('customer.shop') }}">Shop</a></li>
                     <li><a href="{{ route('customer.index') }}">Dashboard</a></li>
-                    <li><a href="#">Logout</a></li>
+                    <li><a href="{{ route('customer.logout') }}">Logout</a></li>
                 </ul>
             </nav>
             <a onclick="showSubmenu()" class="burger"><i class="fa fa-bars fa-2x"></i></a>
@@ -36,7 +36,7 @@
                     <li><a href="{{ route('customer.classes') }}" class="active">Classes</a></li>
                     <li><a href="{{ route('customer.shop') }}">Shop</a></li>
                     <li><a href="{{ route('customer.index') }}" class="active">Dashboard</a></li>
-                    <li><a href="#">Logout</a></li>
+                    <li><a href="{{ route('customer.logout') }}">Logout</a></li>
                 </ul>
             </div>
         </div>
@@ -125,7 +125,7 @@
                     <li><a href="{{ route('customer.classes') }}">Classes</a></li>
                     <li><a href="{{ route('customer.shop') }}">Shop</a></li>
                     <li><a href="{{ route('customer.index') }}">Dashboard</a></li>
-                    <li><a href="../index.html">Logout</a></li>
+                    <li><a href="{{ route('customer.logout') }}">Logout</a></li>
                 </ul>
             </nav>
             <div>

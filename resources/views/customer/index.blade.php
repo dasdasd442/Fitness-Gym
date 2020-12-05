@@ -10,8 +10,59 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"></script>
     <link rel="stylesheet" href="{{ asset('css/employee.css') }}">
     <title>California Fitness Gym | Dashboard</title>
+    <style>
+        .showMe {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(1.1);
+            transition: visibility 0s linear 0.25s, opacity 0.25s 0s, transform 0.25s;
+        }
+        .showMe-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1rem 1.5rem;
+            width: 24rem;
+            border-radius: 0.5rem;
+        }
+        .show-showMe {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1.0);
+            transition: visibility 0s linear 0s, opacity 0.25s 0s, transform 0.25s;
+            z-index: 1000;
+        }
+        .showMe h1 {
+            margin-bottom: 0px;
+        }
+    </style>
 </head>
-<body>
+@if (session('msg') == 'Added Successfully!')
+  <body id="page-top" onload="toggleModal('Added Successfully!')">
+@elseif (session('msg')  == 'Removed Successfully!')
+  <body id="page-top" onload="toggleModal('Removed Successfully!')">
+@elseif (session('msg')  == 'Updated Successfully!')
+  <body id="page-top" onload="toggleModal('Updated Successfully!')">
+@elseif (session('msg')  == 'Cannot Perform Action!')
+  <body id="page-top" onload="toggleModal('Cannot Perform Action!')">
+@else
+  <body id="page-top">
+@endif
+
+
+<div class="showMe">
+  <div class="showMe-content">
+      <h1 style="text-align: center; "></h1>
+  </div>
+</div>
     <a class="top-link hidescroll" href="#" id="js-top">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6"><path d="M12 6H0l6-6z"/></svg>
         <span class="screen-reader-text">Back to top</span>
@@ -25,7 +76,7 @@
                     <li><a href="{{ route('customer.classes') }}">Classes</a></li>
                     <li><a href="{{ route('customer.shop') }}" >Shop</a></li>
                     <li><a href="{{ route('customer.index') }}" class="active">Dashboard</a></li>
-                    <li><a href="#">Logout</a></li>
+                    <li><a href="{{ route('customer.logout') }}">Logout</a></li>
                 </ul>
             </nav>
             <a onclick="showSubmenu()" class="burger"><i class="fa fa-bars fa-2x"></i></a>
@@ -34,7 +85,7 @@
                     <li><a href="{{ route('customer.classes') }}">Classes</a></li>
                     <li><a href="{{ route('customer.shop') }}">Shop</a></li>
                     <li><a href="{{ route('customer.index') }}">Dashboard</a></li>
-                    <li><a href="#">Logout</a></li>
+                    <li><a href="{{ route('customer.logout') }}">Logout</a></li>
                 </ul>
             </div>
         </div>
@@ -45,7 +96,7 @@
         <div class="container grid">
             <div class="slideInFromLeft">
                 <h1 class="xl">Welcome to Dashboard</h1>
-                <p class="lead">California Fitness Gym | {{ $customer->customer_name }}</p>
+            <p class="lead">California Fitness Gym | {{ $customer->customer_name }} | {{ $customer->customer_id }}</p>
             </div>
             <i class="fas fa-folder-open slideInFromRight"></i>
         </div>
@@ -84,11 +135,19 @@
                     </div>
                     <div class="alert alert-success">
                         <i class="fas fa-info"></i>
-                        Subscribed on {{ $subscribed_on }}
+                        @if ($subscribed_on)
+                            Last Subscribed in {{ $subscribed_on }}
+                        @else
+                            Last Subscribed in the early days of humanity.
+                        @endif
                     </div>
                     <div class="alert alert-success">
                         <i class="fas fa-info"></i>
-                        Subscription expires on {{ $expires_on }}
+                        @if ($expires_on)
+                            Latest Subscription expires in {{ $expires_on }}
+                        @else
+                            Latest Subscription expired in the early days of humanity.
+                        @endif
                     </div>
                     <div class="alert alert-error">
                         <i class="fas fa-info"></i>
@@ -113,19 +172,11 @@
                 <div id="settings" class="card m-5-bottom">
                     <h2><i class="fas fa-user-cog icons"></i>Your Personal Settings</h2>
                         <div class="form-control">
-                            <input type="text" name="user_name" placeholder="Full Name: {{ $customer->customer_name }}" required disabled>
-                            <button class="btn btn-primary half-btn" data-toggle="modal" data-target="#myModal1">Update Name</button>
-                        </div>
-                        <div class="form-control">
-                            <input type="text" name="user_age" placeholder="Age: {{ $customer->customer_age }}" required disabled>
-                            <button class="btn btn-primary half-btn" data-toggle="modal" data-target="#myModal2">Update Age</button>
-                        </div>
-                        <div class="form-control">
-                            <input type="email" name="user_email" placeholder="Email: {{ $customer->customer_email }}" required disabled>
+                            <input type="email" name="email" placeholder="Email: {{ $customer->email }}" required disabled>
                             <button class="btn btn-primary half-btn" data-toggle="modal" data-target="#myModal3">Update Email</button>
                         </div>
                         <div class="form-control">
-                            <input type="password" name="user_password" placeholder="Password: ******" required disabled>
+                            <input type="password" name="password" placeholder="Password: {{ $customer->password }}" required disabled>
                             <button class="btn btn-primary half-btn" data-toggle="modal" data-target="#myModal4">Update Password</button>
                         </div>
                 </div>
@@ -148,7 +199,7 @@
                             <div id="modRow" class="d-flex justify-content-center row">
                                 <div class="col">
                                     <div class="grid grid-2">
-                                        <img src="../images/boxing-1.jpg" />
+                                        <img src="../{{ $class->class_image }}" />
                                         <div>
                                             <h2>Schedule:<span class="text-support m-2">{{ $class->class_schedule }}</span></h2>
                                             <h2>Time: <span class="text-support m-2">{{ $class->class_time }}</span></h2>
@@ -167,60 +218,6 @@
                 @endforeach
 
                 <!--------------------------- MODAL FOR PERSONAL SETTING --------------------------->
-                <!-- Full name -->
-                <div id="myModal1" class="modal fade" role="dialog">
-                    <div class="modal-dialog modal-lg">
-                    <!-- Modal content-->
-                    <div class="modal-content">
-                        <div class="modal-header">
-                        <h2 class="modal-title"><i class="fas fa-plus icons md"></i>Update</h2>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                        <div id="modRow" class="d-flex justify-content-center row">
-                            <div class="col">
-                                <form>
-                                    <div class="form-control">
-                                        <input class="full" type="text" name="user_name" placeholder="Enter New Full Name" required>
-                                    </div>
-                                    <input type="submit" value="Update Name" class="btn btn-primary fullbtn" />
-                                </form>
-                            </div>
-                        </div>
-                        </div>
-                        <div class="modal-footer">
-                        </div>
-                    </div>
-                    </div>
-                </div>
-
-                <!-- Age -->
-                <div id="myModal2" class="modal fade" role="dialog">
-                    <div class="modal-dialog modal-lg">
-                    <!-- Modal content-->
-                    <div class="modal-content">
-                        <div class="modal-header">
-                        <h2 class="modal-title"><i class="fas fa-plus icons md"></i>Update</h2>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                        <div id="modRow" class="d-flex justify-content-center row">
-                            <div class="col">
-                                <form>
-                                    <div class="form-control">
-                                        <input class="full" type="text" name="user_age" placeholder="Enter New Age" required>
-                                    </div>
-                                    <input type="submit" value="Update Age" class="btn btn-primary fullbtn" />
-                                </form>
-                            </div>
-                        </div>
-                        </div>
-                        <div class="modal-footer">
-                        </div>
-                    </div>
-                    </div>
-                </div>
-
                 <!-- Email -->
                 <div id="myModal3" class="modal fade" role="dialog">
                     <div class="modal-dialog modal-lg">
@@ -233,9 +230,10 @@
                         <div class="modal-body">
                         <div id="modRow" class="d-flex justify-content-center row">
                             <div class="col">
-                                <form>
+                                <form action="{{ route('c-update-email') }}" method="POST">
+                                    @csrf
                                     <div class="form-control">
-                                        <input class="full" type="email" name="user_email" placeholder="Enter New Email" required>
+                                        <input class="full" type="email" name="email" placeholder="Enter New Email" required>
                                     </div>
                                     <input type="submit" value="Update Email" class="btn btn-primary fullbtn" />
                                 </form>
@@ -260,9 +258,13 @@
                         <div class="modal-body">
                         <div id="modRow" class="d-flex justify-content-center row">
                             <div class="col">
-                                <form>
+                                <form action="{{ route('c-update-password') }}" method="POST">
+                                    @csrf
                                     <div class="form-control">
-                                        <input class="full" type="password" name="user_password" placeholder="Enter New Password" required>
+                                        <input class="full" type="password" name="password" placeholder="Enter New Password" required>
+                                    </div>
+                                    <div class="form-control">
+                                        <input class="full" type="password" name="confirm_password" placeholder="Re-enter Password" required>
                                     </div>
                                     <input type="submit" value="Update Password" class="btn btn-primary fullbtn" />
                                 </form>
@@ -295,7 +297,7 @@
                     <li><a href="{{ route('customer.shop') }}">Shop</a></li>
                     <li><a href="{{ route('customer.classes') }}">Classes</a></li>
                     <li><a href="{{ route('customer.index') }}">Dashboard</a></li>
-                    <li><a href="#">Logout</a></li>
+                    <li><a href="{{ route('customer.logout') }}">Logout</a></li>
                 </ul>
             </nav>
             <div>
@@ -346,6 +348,22 @@
         function topFunction() {
             document.body.scrollTop = 0;
             document.documentElement.scrollTop = 0;
+        }
+
+        let modal = document.querySelector('.showMe');
+        console.log(modal);
+        function toggleModal(say) {
+            modal.classList.toggle("show-showMe");
+            let what = modal.firstElementChild;
+            
+            what.style.color = (say == 'Cannot Perform Action!') ? '#d9534f' : '#5cb85c';
+
+            what = what.firstElementChild;
+            what.textContent = say;
+
+            setTimeout(() => {
+                modal.classList.remove("show-showMe");
+            }, 1000);
         }
     </script>
 </body>
