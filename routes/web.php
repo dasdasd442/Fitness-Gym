@@ -26,9 +26,9 @@ use App\Http\Controllers\CustomerLogInController;
 
 /* ADMIN ROUTES */
 /* GET ROUTES */
-Route::get('/sample', function() {
-    return view('home');
-});
+// Route::get('/sample', function() {
+//     return view('home');
+// });
 
 Route::prefix('admin')->group(function () {
     Route::get('/login', [AdminLogInController::class, 'showLogInForm'])->name('admin.login');
@@ -147,4 +147,4 @@ Route::post('/signup-submit', [MainController::class, 'signupSubmit'])->name('ma
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

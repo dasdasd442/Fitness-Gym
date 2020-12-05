@@ -120,7 +120,7 @@
     <!-- Sidebar - Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('admin.index') }}">
       <div class="sidebar-brand-icon">
-        <img id="showImg" src="images/logo.png" class="img-thumbnail d-lg-none sm"/>
+        <img id="showImg" src="../images/logo.png" class="img-thumbnail d-lg-none sm"/>
       </div>
       <div class="sidebar-brand-text mx-3">California Fitness Gym</div>
     </a>
