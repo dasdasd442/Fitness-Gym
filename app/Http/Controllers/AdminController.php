@@ -47,8 +47,7 @@ class AdminController extends Controller
 
         // return $monthlyEarnings;
         $dailyEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                                            ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-                                            AND DATE(`transaction_date`) <= CURDATE()')
+                                            ->whereRaw('DATE(`transaction_date`) = DATE(CURDATE())')
                                             ->get()->toArray();
 
         $lifetimeEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))->get()->toArray();
@@ -92,8 +91,7 @@ class AdminController extends Controller
 
 
         $transactionsToday = DB::table('transactiondetail')->select(DB::raw('COUNT(*) AS num_of_transaction'))
-                                ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-                                AND DATE(`transaction_date`) <= CURDATE()')->get()->toArray();
+                                ->whereRaw('DATE(`transaction_date`) = DATE(CURDATE())')->get()->toArray();
 
         $walkinTransactions = DB::table('transactiondetail')
                                 ->select(DB::raw('*'))

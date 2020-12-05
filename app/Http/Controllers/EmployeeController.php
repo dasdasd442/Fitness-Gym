@@ -111,13 +111,11 @@ class EmployeeController extends Controller
 
     public function newTransaction() {
         $dailyEarnings = DB::table('transactiondetail')->select(DB::raw('SUM(total_payment) AS earnings'))
-                                            ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-                                            AND DATE(`transaction_date`) <= CURDATE()')
+                                            ->whereRaw('DATE(`transaction_date`) = DATE(CURDATE())')
                                             ->get()->toArray();
 
         $transactionsToday = DB::table('transactiondetail')->select(DB::raw('COUNT(*) AS num_of_transaction'))
-                                            ->whereRaw('DATE(`transaction_date`) >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-                                            AND DATE(`transaction_date`) <= CURDATE()')->get()->toArray();
+                                            ->whereRaw('DATE(`transaction_date`) = DATE(CURDATE())')->get()->toArray();
 
 
         $latest_transaction = DB::table('transactiondetail')

@@ -45,7 +45,7 @@
         <div class="container grid">
             <div class="slideInFromLeft">
                 <h1 class="xl">Welcome to Dashboard</h1>
-                <p class="lead">California Fitness Gym | Hansel</p>
+                <p class="lead">California Fitness Gym | {{ $customer->customer_name }}</p>
             </div>
             <i class="fas fa-folder-open slideInFromRight"></i>
         </div>
